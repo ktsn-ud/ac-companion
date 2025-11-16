@@ -17,7 +17,11 @@ import {
   getNextTestIndex,
   normalizeLineEndings,
 } from "./core/testCaseUtils";
-import { runAllTests, runTestCase } from "./core/testRunner";
+import {
+  buildCodonBinary,
+  runCodonTestCase,
+  runTestCase,
+} from "./core/testRunner";
 import { getCurrentProblem, setCurrentProblem } from "./core/problemState";
 import { ProblemRecord } from "./types/problem";
 
@@ -302,24 +306,43 @@ async function handleRunAllTests() {
 
   const results: RunResult[] = [];
   try {
-    for (const testCase of problem.cases) {
-      sendRunProgress("all", true, testCase.index);
-      const result = await runTestCase(
+    let codonBinaryPath: string | null = null;
+    let runStartAt = startAt;
+    if (settings.interpreter === "codon") {
+      outputChannel?.appendLine("[Codon] Building binary...");
+      codonBinaryPath = await buildCodonBinary(
         problem,
         settings,
-        workspaceRoot,
-        testCase
+        workspaceRoot
       );
+      outputChannel?.appendLine(`[Codon] Build succeeded: ${codonBinaryPath}`);
+      runStartAt = Date.now();
+    }
+    for (const testCase of problem.cases) {
+      sendRunProgress("all", true, testCase.index);
+      const result =
+        settings.interpreter === "codon"
+          ? await runCodonTestCase(
+              problem,
+              settings,
+              workspaceRoot,
+              testCase,
+              codonBinaryPath ?? undefined
+            )
+          : await runTestCase(
+              problem,
+              settings,
+              workspaceRoot,
+              testCase
+            );
       results.push(result);
       outputChannel?.appendLine(
-        `#${result.index} ${result.status.toUpperCase()} (${
-          result.durationMs
-        }ms)`
+        `#${result.index} ${result.status.toUpperCase()} (${result.durationMs}ms)`
       );
       logResultToOutput(result);
       sendRunResult("all", result);
     }
-    sendRunComplete("all", results, Date.now() - startAt);
+    sendRunComplete("all", results, Date.now() - runStartAt);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to run tests.";
@@ -429,18 +452,39 @@ async function runSingleTestByIndex(index: number) {
   outputChannel?.appendLine(`[Run #${index}] ${problem.name}`);
 
   try {
-    const result = await runTestCase(
-      problem,
-      settings,
-      workspaceRoot,
-      testCase
-    );
+    let codonBinaryPath: string | null = null;
+    let runStartAt = startAt;
+    if (settings.interpreter === "codon") {
+      outputChannel?.appendLine("[Codon] Building binary...");
+      codonBinaryPath = await buildCodonBinary(
+        problem,
+        settings,
+        workspaceRoot
+      );
+      outputChannel?.appendLine(`[Codon] Build succeeded: ${codonBinaryPath}`);
+      runStartAt = Date.now();
+    }
+    const result =
+      settings.interpreter === "codon"
+        ? await runCodonTestCase(
+            problem,
+            settings,
+            workspaceRoot,
+            testCase,
+            codonBinaryPath ?? undefined
+          )
+        : await runTestCase(
+            problem,
+            settings,
+            workspaceRoot,
+            testCase
+          );
     outputChannel?.appendLine(
       `#${index} ${result.status.toUpperCase()} (${result.durationMs}ms)`
     );
     logResultToOutput(result);
     sendRunResult("one", result);
-    sendRunComplete("one", [result], Date.now() - startAt);
+    sendRunComplete("one", [result], Date.now() - runStartAt);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to run the test.";
@@ -500,6 +544,12 @@ function loadSettings(): AcCompanionPythonSettings {
   );
 
   const timeoutMs = config.get<number | null>("timeoutMs");
+  const codonBuildArgsValue = config.get<unknown>("codonBuildArgs");
+  const codonBuildArgs =
+    Array.isArray(codonBuildArgsValue) &&
+    codonBuildArgsValue.every((item) => typeof item === "string")
+      ? (codonBuildArgsValue as string[])
+      : ["build", "-release"];
 
   return {
     port: config.get<number>("port", 10043),
@@ -511,6 +561,9 @@ function loadSettings(): AcCompanionPythonSettings {
     interpreter,
     pythonCommand: config.get<string>("pythonCommand", "python"),
     pypyCommand: config.get<string>("pypyCommand", "pypy3"),
+    codonCommand: config.get<string>("codonCommand", "codon"),
+    codonBuildArgs,
+    codonOutputName: config.get<string>("codonOutputName", "a.out"),
     runCwdMode,
     timeoutMs: typeof timeoutMs === "number" ? timeoutMs : null,
     compare: {
@@ -614,8 +667,12 @@ async function switchInterpreter(interpreter: Interpreter) {
       interpreter,
       vscode.ConfigurationTarget.Workspace
     );
-    const label = interpreter === "cpython" ? "CPython" : "PyPy";
-    sendNotice("info", `${label} interpreter selected.`);
+    const labelMap: Record<Interpreter, string> = {
+      cpython: "CPython",
+      pypy: "PyPy",
+      codon: "Codon",
+    };
+    sendNotice("info", `${labelMap[interpreter]} interpreter selected.`);
     sendStateToWebview();
   } catch (error) {
     const message =
@@ -641,7 +698,11 @@ function handleWebviewMessage(message: any) {
       }
       break;
     case "ui/switchInterpreter":
-      if (message.interpreter === "cpython" || message.interpreter === "pypy") {
+      if (
+        message.interpreter === "cpython" ||
+        message.interpreter === "pypy" ||
+        message.interpreter === "codon"
+      ) {
         void switchInterpreter(message.interpreter);
       }
       break;

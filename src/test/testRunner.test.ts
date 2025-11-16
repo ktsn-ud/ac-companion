@@ -19,6 +19,9 @@ const DEFAULT_SETTINGS: AcCompanionPythonSettings = {
   interpreter: "cpython",
   pythonCommand: "python",
   pypyCommand: "pypy3",
+  codonCommand: "codon",
+  codonBuildArgs: ["build", "-release"],
+  codonOutputName: "a.out",
   runCwdMode: "workspace",
   timeoutMs: null,
   compare: {
@@ -86,7 +89,7 @@ print(data.strip())
         workspaceRoot,
         problem.cases[0]
       );
-      assert.strictEqual(result.status, "pass");
+      assert.strictEqual(result.status, "AC");
       assert.strictEqual(result.actual, "hello\n");
       assert.strictEqual(result.console, "");
     } finally {
@@ -110,7 +113,7 @@ print("mismatch")
         workspaceRoot,
         problem.cases[0]
       );
-      assert.strictEqual(result.status, "fail");
+      assert.strictEqual(result.status, "WA");
       assert.ok(result.actual.includes("mismatch"));
     } finally {
       fs.rmSync(workspaceRoot, { recursive: true, force: true });

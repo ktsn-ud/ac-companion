@@ -91,7 +91,10 @@ const App = () => {
     if (!settings) {
       return;
     }
-    const next = settings.interpreter === "cpython" ? "pypy" : "cpython";
+    const order: RunSettings["interpreter"][] = ["cpython", "pypy", "codon"];
+    const currentIndex = order.indexOf(settings.interpreter);
+    const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % order.length : 0;
+    const next = order[nextIndex];
     vscode.postMessage({ type: "ui/switchInterpreter", interpreter: next });
   };
 

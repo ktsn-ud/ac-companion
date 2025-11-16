@@ -21,7 +21,7 @@ export interface Problem {
 }
 
 export interface RunSettings {
-  interpreter: "cpython" | "pypy";
+  interpreter: "cpython" | "pypy" | "codon";
   pythonCommand: string;
   pypyCommand: string;
   runCwdMode: "workspace" | "task";
@@ -87,5 +87,5 @@ export type Message =
     }
   | {
       type: "ui/switchInterpreter";
-      interpreter: "cpython" | "pypy";
+      interpreter: "cpython" | "pypy" | "codon";
     };
