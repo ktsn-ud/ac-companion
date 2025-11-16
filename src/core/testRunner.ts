@@ -224,11 +224,17 @@ export async function buildCodonBinary(
   workspaceRoot: string
 ): Promise<string> {
   const { solutionDir } = ensureSolutionFile(workspaceRoot, problem);
-  const binaryPath = getCodonBinaryPath(workspaceRoot, problem, settings);
+  const outputName = settings.codonOutputName || DEFAULT_CODON_OUTPUT_NAME;
+  const binaryPath = path.join(solutionDir, outputName);
   const buildArgs = Array.isArray(settings.codonBuildArgs)
     ? settings.codonBuildArgs
     : DEFAULT_CODON_BUILD_ARGS;
-  const args = [...(buildArgs.length ? buildArgs : DEFAULT_CODON_BUILD_ARGS), "main.py"];
+  const args = [
+    ...(buildArgs.length ? buildArgs : DEFAULT_CODON_BUILD_ARGS),
+    "-o",
+    outputName,
+    "main.py",
+  ];
 
   return new Promise<string>((resolve, reject) => {
     const child = spawn(settings.codonCommand, args, {

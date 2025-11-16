@@ -75,9 +75,9 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 - `ac-companion-python.codonCommand` (default: `codon`)
   - Codon ビルドに使用するコマンド
 - `ac-companion-python.codonBuildArgs` (default: `["build", "-release"]`)
-  - Codon ビルド時に `main.py` の直前へ追加する引数
+  - Codon ビルド時に `main.py` の直前へ追加する引数（この拡張機能が自動で `-o <codonOutputName> main.py` を付与します）
 - `ac-companion-python.codonOutputName` (default: `a.out`)
-  - Codon ビルドで生成されるバイナリファイル名
+  - Codon ビルドで生成されるバイナリファイル名。Codon ではデフォルトで入力ファイル名（`main` など）が利用されるため、希望する名前にするには `-o` の指定が必要ですが、本拡張が自動で渡します。
 - `ac-companion-python.runCwdMode` (default: `workspace`)
   - 実行時のカレントディレクトリ（`workspace` または `task`）
 - `ac-companion-python.timeoutMs` (default: `null`)
@@ -99,9 +99,13 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 
 ## Release Notes
 
+### 1.1.1
+
+- Codon ビルドが常に `-o <codonOutputName>` を指定するようになり、設定したバイナリ名がデフォルトで反映されるように修正
+
 ### 1.1.0
 
-- Codon インタプリタの実行をサポート。`codon build -release` で 1 度だけビルドし、生成バイナリでサンプルを実行
+- Codon インタプリタの実行をサポート。`codon build -release -o <output> main.py` で 1 度だけビルドし、生成バイナリでサンプルを実行
 - Webview のインタプリタ切替を `CPython → PyPy → Codon` の 3 段階に拡張し、ビルド時間を除いた実行時間を表示
 - 設定に Codon コマンド／引数／出力ファイル名を追加
 
