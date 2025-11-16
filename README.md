@@ -99,6 +99,10 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 
 ## Release Notes
 
+### 1.1.1
+
+- Codon ビルドが常に `-o <codonOutputName>` を指定するようになり、設定したバイナリ名がデフォルトで反映されるように修正
+
 ### 1.1.0
 
 - Codon インタプリタの実行をサポート。`codon build -release -o <output> main.py` で 1 度だけビルドし、生成バイナリでサンプルを実行
