@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Message, Problem, RunResult, RunSettings } from "./webviewTypes";
 import { HeaderControls } from "./components/HeaderControls";
@@ -19,6 +19,7 @@ const App = () => {
   const [running, setRunning] = useState(false);
   const [statusText, setStatusText] = useState("No problem loaded.");
   const [notice, setNotice] = useState<string | null>(null);
+  const runStateRef = useRef(false);
 
   useEffect(() => {
     const handler = (event: MessageEvent<Message>) => {
@@ -39,6 +40,8 @@ const App = () => {
           break;
         }
         case "run/progress": {
+          const runStarted = message.running && !runStateRef.current;
+          runStateRef.current = message.running;
           setRunning(message.running);
           setStatusText(
             message.running
@@ -48,7 +51,7 @@ const App = () => {
               : "Idle"
           );
           // テスト実行開始時に結果をリセット
-          if (message.running && message.scope) {
+          if (runStarted) {
             setResults({});
           }
           break;

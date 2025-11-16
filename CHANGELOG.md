@@ -2,6 +2,12 @@
 
 All notable changes to the "ac-companion-python" extension are documented here. This file mirrors the Release Notes section in `README.md`.
 
+## [1.1.2]
+
+### Fixed
+
+- Run All 実行時に Webview の各テスト結果が途中で PENDING のままになることがある問題を修正し、総合結果表示も正しく更新されるように改善
+
 ## [1.1.1]
 
 ### Fixed

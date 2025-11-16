@@ -99,6 +99,10 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 
 ## Release Notes
 
+### 1.1.2
+
+- Webview のテスト結果が途中で PENDING のまま残ることがあった問題を修正し、Run All の集計表示を正しく更新
+
 ### 1.1.1
 
 - Codon ビルドが常に `-o <codonOutputName>` を指定するようになり、設定したバイナリ名がデフォルトで反映されるように修正
