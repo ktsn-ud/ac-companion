@@ -60,7 +60,8 @@
           "type": "string",
           "enum": [
             "cpython",
-            "pypy"
+            "pypy",
+            "codon"
           ],
           "default": "cpython",
           "description": "テスト実行で使用するインタプリタ"
@@ -74,6 +75,27 @@
           "type": "string",
           "default": "pypy3",
           "description": "PyPy 実行時のコマンド名またはパス"
+        },
+        "ac-companion-python.codonCommand": {
+          "type": "string",
+          "default": "codon",
+          "description": "Codon ビルド実行時のコマンド名またはパス"
+        },
+        "ac-companion-python.codonBuildArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "build",
+            "-release"
+          ],
+          "description": "Codon ビルド時に渡す追加引数"
+        },
+        "ac-companion-python.codonOutputName": {
+          "type": "string",
+          "default": "a.out",
+          "description": "Codon ビルドで生成されるバイナリファイル名"
         },
         "ac-companion-python.runCwdMode": {
           "type": "string",

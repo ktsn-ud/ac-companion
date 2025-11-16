@@ -8,7 +8,7 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 - `コンテストID/タスクID/<保存ディレクトリ名>` 構造で `.in/.out` を作成
 - テンプレート `main.py` を自動配置（未存在のときのみ）し、エディタで自動オープン＋`pass` を選択
 - サイドバー（ACCP Panel）でテスト一覧を表示し、Run All / 各テストの実行が可能
-- インタプリタを CPython / PyPy で切替（サイドバーからワンクリック）
+- インタプリタを CPython / PyPy / Codon で切替（サイドバーからワンクリック）
 - 出力の比較（完全一致、大小文字の判定切替）と結果の表示（AC/WA/TLE/RE）
 - コマンドパレット: Start/Stop/Run All/Run Test を提供
 - 既存のテストがある場合、再インポートでは上書きせずスキップ
@@ -67,11 +67,17 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 - `ac-companion-python.templateFilePath` (default: `.config/templates/main.py`)
   - `main.py` が未存在のときにコピーするテンプレートのパス
 - `ac-companion-python.interpreter` (default: `cpython`)
-  - 使用インタプリタ（`cpython` / `pypy`）
+  - 使用インタプリタ（`cpython` / `pypy` / `codon`）
 - `ac-companion-python.pythonCommand` (default: `python`)
   - CPython 実行コマンド
 - `ac-companion-python.pypyCommand` (default: `pypy3`)
   - PyPy 実行コマンド
+- `ac-companion-python.codonCommand` (default: `codon`)
+  - Codon ビルドに使用するコマンド
+- `ac-companion-python.codonBuildArgs` (default: `["build", "-release"]`)
+  - Codon ビルド時に `main.py` の直前へ追加する引数
+- `ac-companion-python.codonOutputName` (default: `a.out`)
+  - Codon ビルドで生成されるバイナリファイル名
 - `ac-companion-python.runCwdMode` (default: `workspace`)
   - 実行時のカレントディレクトリ（`workspace` または `task`）
 - `ac-companion-python.timeoutMs` (default: `null`)

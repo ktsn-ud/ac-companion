@@ -144,3 +144,9 @@
 - タイムアウト判定および時間表示は、**ビルド時間を除外した実実行時間のみ** を対象とする。
 - Dev Container では `codon build -release main.py` → `a.out` → テスト実行という流れを標準とする。
 - この仕様を元に、`src/types/config.ts`／`src/core/testRunner.ts`／`src/extension.ts`／Webview 関連の型・UI を順次拡張していく。
+
+## 実装メモ（2025-11-16）
+
+- `runTestCase()` は Codon を直接扱わず、`buildCodonBinary()` + `runCodonTestCase()` 経由で実行する。
+- `handleRunAllTests()` では Codon バイナリ生成後に計測を開始し、UI に渡す `durationMs` からビルド時間を除外している。
+- Webview のインタプリタ切替ボタンは `CPython → PyPy → Codon → ...` の順で循環する。
