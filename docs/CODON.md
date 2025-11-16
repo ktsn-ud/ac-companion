@@ -7,7 +7,7 @@
 
 - Dev Container 環境を前提に、`codon` コマンドが利用可能であること。
 - 各問題（`contestId/taskId`）について:
-  - `codon build -release main.py` を **1 回だけ** 実行してネイティブバイナリ（`a.out`）を作成。
+- `codon build -release -o <output> main.py` を **1 回だけ** 実行してネイティブバイナリ（既定 `a.out`）を作成。
   - 作成した `a.out` を使って、サンプルテストケースを順次実行する。
 - タイムアウト判定・時間表示は、**ビルド時間を含めず、実行時間のみ** を対象とする。
 
@@ -28,12 +28,12 @@
 - `ac-companion-python.codonBuildArgs`（実装する場合）
   - type: string[]
   - default: `["build", "-release"]`
-  - Description: Codon ビルド時に渡す追加引数。既定では `codon build -release main.py` 相当を実行する。
+  - Description: Codon ビルド時に渡す追加引数。既定では `codon build -release -o <output> main.py` 相当を実行する。
 
 - `ac-companion-python.codonOutputName`（実装する場合）
   - type: string
   - default: `"a.out"`
-  - Description: Codon ビルドで生成される出力バイナリ名。`contestId/taskId` ディレクトリ直下に作成する。
+  - Description: Codon ビルドで生成される出力バイナリ名。`contestId/taskId` ディレクトリ直下に作成する。Codon 本体では `main` など入力に由来する名前になるため、常に `-o <codonOutputName>` を付与する。
 
 既存の `timeoutMs`、`runCwdMode` などはそのまま再利用する。
 
@@ -56,7 +56,7 @@
   - コマンド:  
     - ベース: `settings.codonCommand`（既定 `"codon"`）  
     - 引数: `settings.codonBuildArgs ?? ["build", "-release"]`  
-    - 最終的に `codon build -release main.py` を `cwd = solutionDir` で実行するイメージ。
+    - 最終的に `codon build -release -o <codonOutputName> main.py` を `cwd = solutionDir` で実行するイメージ。
   - 成功時:
     - `binaryPath`（例: `/<workspaceRoot>/<contestId>/<taskId>/a.out`）が存在する前提で、そのパスを返す。
   - 失敗時:
@@ -123,7 +123,7 @@
   - `ac-companion-python.interpreter = "codon"`
   - `ac-companion-python.codonCommand = "codon"`
   - 問題取得後、`Run All Tests` を実行すると:
-    1. `codon build -release main.py` が `contestId/taskId` ディレクトリで 1 回だけ実行される。
+    1. `codon build -release -o <output> main.py` が `contestId/taskId` ディレクトリで 1 回だけ実行される。
     2. 生成された `a.out` で各 `.in` を実行し、`durationMs` は実行のみを計測。
 
 ## UI / Webview への影響
@@ -142,7 +142,7 @@
 
 - Codon 対応では、**ビルドとテスト実行を明確に分離** し、ビルドは 1 問につき 1 回だけ行う。
 - タイムアウト判定および時間表示は、**ビルド時間を除外した実実行時間のみ** を対象とする。
-- Dev Container では `codon build -release main.py` → `a.out` → テスト実行という流れを標準とする。
+- Dev Container では `codon build -release -o <output> main.py` → `a.out` → テスト実行という流れを標準とする。
 - この仕様を元に、`src/types/config.ts`／`src/core/testRunner.ts`／`src/extension.ts`／Webview 関連の型・UI を順次拡張していく。
 
 ## 実装メモ（2025-11-16）
