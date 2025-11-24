@@ -9,6 +9,7 @@ import {
 } from "./types/CompetitiveCompanions";
 import {
   AcCompanionPythonSettings,
+  Language,
   Interpreter,
   RunCwdMode,
 } from "./types/config";
@@ -18,9 +19,9 @@ import {
   normalizeLineEndings,
 } from "./core/testCaseUtils";
 import {
-  buildCodonBinary,
-  runCodonTestCase,
-  runTestCase,
+  compileCppBinary,
+  runCppTestCase,
+  runPythonTestCase,
 } from "./core/testRunner";
 import { getCurrentProblem, setCurrentProblem } from "./core/problemState";
 import { ProblemRecord } from "./types/problem";
@@ -29,6 +30,7 @@ import { WebviewProvider } from "./webview/webviewProvider";
 import { RunResult, RunScope, RunSummary } from "./types/runner";
 
 const TEMPLATE_FILE_DEFAULT = ".config/templates/main.py";
+const TEMPLATE_FILE_DEFAULT_CPP = ".config/templates/main.cpp";
 const PLACEHOLDER = "pass";
 
 let server: http.Server | null = null;
@@ -37,7 +39,7 @@ let outputChannel: vscode.OutputChannel | null = null;
 let isRunning = false;
 
 export function activate(context: vscode.ExtensionContext) {
-  outputChannel = vscode.window.createOutputChannel("AC Companion Python");
+  outputChannel = vscode.window.createOutputChannel("AC Companion");
   context.subscriptions.push(outputChannel);
 
   const provider = new WebviewProvider(context.extensionUri);
@@ -48,20 +50,11 @@ export function activate(context: vscode.ExtensionContext) {
   provider.onDidReceiveMessage(handleWebviewMessage);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ac-companion-python.start", startServer),
-    vscode.commands.registerCommand("ac-companion-python.stop", stopServer),
-    vscode.commands.registerCommand(
-      "ac-companion-python.runAll",
-      handleRunAllTests
-    ),
-    vscode.commands.registerCommand(
-      "ac-companion-python.runOne",
-      handleRunOneTest
-    ),
-    vscode.window.registerWebviewViewProvider(
-      "ac-companion-python.view",
-      provider
-    )
+    vscode.commands.registerCommand("ac-companion.start", startServer),
+    vscode.commands.registerCommand("ac-companion.stop", stopServer),
+    vscode.commands.registerCommand("ac-companion.runAll", handleRunAllTests),
+    vscode.commands.registerCommand("ac-companion.runOne", handleRunOneTest),
+    vscode.window.registerWebviewViewProvider("ac-companion.view", provider)
   );
 
   startServer();
@@ -76,7 +69,7 @@ export function deactivate() {}
 async function startServer() {
   if (server) {
     vscode.window.showInformationMessage(
-      "AC Companion Python server is already running."
+      "AC Companion server is already running."
     );
     return;
   }
@@ -183,9 +176,15 @@ async function startServer() {
           // テンプレートファイルのコピー
           const templateRelativePath =
             settings.templateFilePath || TEMPLATE_FILE_DEFAULT;
+          const templateRelativePathCpp =
+            settings.templateFilePathCpp || TEMPLATE_FILE_DEFAULT_CPP;
           const templatePath = path.join(
             workspaceFolders.uri.fsPath,
             templateRelativePath
+          );
+          const templatePathCpp = path.join(
+            workspaceFolders.uri.fsPath,
+            templateRelativePathCpp
           );
 
           const solutionDir = path.join(
@@ -194,20 +193,43 @@ async function startServer() {
             taskId
           );
           fs.mkdirSync(solutionDir, { recursive: true });
-          const solutionPath = path.join(solutionDir, "main.py");
-          if (!fs.existsSync(solutionPath)) {
+
+          const pythonSolutionPath = path.join(solutionDir, "main.py");
+          const cppSolutionPath = path.join(solutionDir, "main.cpp");
+
+          if (!fs.existsSync(pythonSolutionPath)) {
             if (fs.existsSync(templatePath)) {
-              fs.copyFileSync(templatePath, solutionPath);
+              fs.copyFileSync(templatePath, pythonSolutionPath);
             } else {
               vscode.window.showWarningMessage(
-                `Template file not found at ${templatePath}. Skipping template copy.`
+                `Template file not found at ${templatePath}. Skipping Python template copy.`
               );
             }
           }
 
-          // ソリューションファイルをエディタで開く
-          if (fs.existsSync(solutionPath)) {
-            const codeUri = vscode.Uri.file(solutionPath);
+          if (!fs.existsSync(cppSolutionPath)) {
+            if (fs.existsSync(templatePathCpp)) {
+              fs.copyFileSync(templatePathCpp, cppSolutionPath);
+            } else {
+              vscode.window.showWarningMessage(
+                `Template file not found at ${templatePathCpp}. Skipping C++ template copy.`
+              );
+            }
+          }
+
+          // ソリューションファイルをエディタで開く（選択中言語に合わせる）
+          const preferredPath =
+            settings.language === "cpp" ? cppSolutionPath : pythonSolutionPath;
+          const fallbackPath =
+            settings.language === "cpp" ? pythonSolutionPath : cppSolutionPath;
+          const solutionToOpen = fs.existsSync(preferredPath)
+            ? preferredPath
+            : fallbackPath && fs.existsSync(fallbackPath)
+            ? fallbackPath
+            : null;
+
+          if (solutionToOpen) {
+            const codeUri = vscode.Uri.file(solutionToOpen);
             openCodeFileAndSetCursor(codeUri);
           }
 
@@ -237,7 +259,7 @@ async function startServer() {
   });
 
   vscode.window.showInformationMessage(
-    `AC Companion Python server started on port ${port}.`
+    `AC Companion server started on port ${port}.`
   );
 
   const statusBarItem = vscode.window.createStatusBarItem(
@@ -245,7 +267,7 @@ async function startServer() {
     0
   );
   statusBarItem.text = `ACCP: Running`;
-  statusBarItem.command = "ac-companion-python.stop";
+  statusBarItem.command = "ac-companion.stop";
   statusBarItem.show();
 }
 
@@ -255,7 +277,7 @@ function stopServer() {
   }
   server.close();
   server = null;
-  vscode.window.showInformationMessage("AC Companion Python server stopped.");
+  vscode.window.showInformationMessage("AC Companion server stopped.");
 }
 
 /**
@@ -264,9 +286,7 @@ function stopServer() {
 async function handleRunAllTests() {
   const problem = getCurrentProblem();
   if (!problem) {
-    vscode.window.showWarningMessage(
-      "No problem loaded for AC Companion Python."
-    );
+    vscode.window.showWarningMessage("No problem loaded for AC Companion.");
     return;
   }
   if (problem.interactive) {
@@ -306,38 +326,31 @@ async function handleRunAllTests() {
 
   const results: RunResult[] = [];
   try {
-    let codonBinaryPath: string | null = null;
+    let cppBinaryPath: string | null = null;
     let runStartAt = startAt;
-    if (settings.interpreter === "codon") {
-      outputChannel?.appendLine("[Codon] Building binary...");
-      codonBinaryPath = await buildCodonBinary(
-        problem,
-        settings,
-        workspaceRoot
-      );
-      outputChannel?.appendLine(`[Codon] Build succeeded: ${codonBinaryPath}`);
+    if (settings.language === "cpp") {
+      outputChannel?.appendLine("[C++] Compiling binary...");
+      cppBinaryPath = await compileCppBinary(problem, settings, workspaceRoot);
+      outputChannel?.appendLine(`[C++] Build succeeded: ${cppBinaryPath}`);
       runStartAt = Date.now();
     }
     for (const testCase of problem.cases) {
       sendRunProgress("all", true, testCase.index);
       const result =
-        settings.interpreter === "codon"
-          ? await runCodonTestCase(
+        settings.language === "cpp"
+          ? await runCppTestCase(
               problem,
               settings,
               workspaceRoot,
               testCase,
-              codonBinaryPath ?? undefined
+              cppBinaryPath ?? undefined
             )
-          : await runTestCase(
-              problem,
-              settings,
-              workspaceRoot,
-              testCase
-            );
+          : await runPythonTestCase(problem, settings, workspaceRoot, testCase);
       results.push(result);
       outputChannel?.appendLine(
-        `#${result.index} ${result.status.toUpperCase()} (${result.durationMs}ms)`
+        `#${result.index} ${result.status.toUpperCase()} (${
+          result.durationMs
+        }ms)`
       );
       logResultToOutput(result);
       sendRunResult("all", result);
@@ -361,9 +374,7 @@ async function handleRunAllTests() {
 async function handleRunOneTest() {
   const problem = getCurrentProblem();
   if (!problem) {
-    vscode.window.showWarningMessage(
-      "No problem loaded for AC Companion Python."
-    );
+    vscode.window.showWarningMessage("No problem loaded for AC Companion.");
     return;
   }
 
@@ -407,9 +418,7 @@ async function handleRunOneTest() {
 async function runSingleTestByIndex(index: number) {
   const problem = getCurrentProblem();
   if (!problem) {
-    vscode.window.showWarningMessage(
-      "No problem loaded for AC Companion Python."
-    );
+    vscode.window.showWarningMessage("No problem loaded for AC Companion.");
     return;
   }
 
@@ -452,33 +461,24 @@ async function runSingleTestByIndex(index: number) {
   outputChannel?.appendLine(`[Run #${index}] ${problem.name}`);
 
   try {
-    let codonBinaryPath: string | null = null;
+    let cppBinaryPath: string | null = null;
     let runStartAt = startAt;
-    if (settings.interpreter === "codon") {
-      outputChannel?.appendLine("[Codon] Building binary...");
-      codonBinaryPath = await buildCodonBinary(
-        problem,
-        settings,
-        workspaceRoot
-      );
-      outputChannel?.appendLine(`[Codon] Build succeeded: ${codonBinaryPath}`);
+    if (settings.language === "cpp") {
+      outputChannel?.appendLine("[C++] Compiling binary...");
+      cppBinaryPath = await compileCppBinary(problem, settings, workspaceRoot);
+      outputChannel?.appendLine(`[C++] Build succeeded: ${cppBinaryPath}`);
       runStartAt = Date.now();
     }
     const result =
-      settings.interpreter === "codon"
-        ? await runCodonTestCase(
+      settings.language === "cpp"
+        ? await runCppTestCase(
             problem,
             settings,
             workspaceRoot,
             testCase,
-            codonBinaryPath ?? undefined
+            cppBinaryPath ?? undefined
           )
-        : await runTestCase(
-            problem,
-            settings,
-            workspaceRoot,
-            testCase
-          );
+        : await runPythonTestCase(problem, settings, workspaceRoot, testCase);
     outputChannel?.appendLine(
       `#${index} ${result.status.toUpperCase()} (${result.durationMs}ms)`
     );
@@ -529,11 +529,19 @@ function getTaskIdFromUrl(url: URL): string | null {
 }
 
 /**
- * VS Code の拡張設定から AC Companion Python の構成を読み取ります。
+ * VS Code の拡張設定から AC Companion の構成を読み取ります。
  */
 function loadSettings(): AcCompanionPythonSettings {
-  const config = vscode.workspace.getConfiguration("ac-companion-python");
-  const interpreter = config.get<Interpreter>("interpreter", "cpython");
+  const config = vscode.workspace.getConfiguration("ac-companion");
+  const interpreterRaw = config.get<Interpreter>("interpreter", "cpython");
+  const languageRaw = config.get<Language>("language", "python");
+  const language: Language = languageRaw === "cpp" ? "cpp" : "python";
+  const interpreter: Interpreter =
+    language === "cpp"
+      ? "cpython"
+      : interpreterRaw === "pypy"
+      ? "pypy"
+      : "cpython";
   const runCwdMode = config.get<RunCwdMode>("runCwdMode", "workspace");
   const compareMode = config.get<string>("compare.mode", "exact");
   const mode: AcCompanionPythonSettings["compare"]["mode"] =
@@ -544,12 +552,6 @@ function loadSettings(): AcCompanionPythonSettings {
   );
 
   const timeoutMs = config.get<number | null>("timeoutMs");
-  const codonBuildArgsValue = config.get<unknown>("codonBuildArgs");
-  const codonBuildArgs =
-    Array.isArray(codonBuildArgsValue) &&
-    codonBuildArgsValue.every((item) => typeof item === "string")
-      ? (codonBuildArgsValue as string[])
-      : ["build", "-release"];
 
   return {
     port: config.get<number>("port", 10043),
@@ -558,12 +560,16 @@ function loadSettings(): AcCompanionPythonSettings {
       "templateFilePath",
       TEMPLATE_FILE_DEFAULT
     ),
+    templateFilePathCpp: config.get<string>(
+      "templateFilePathCpp",
+      TEMPLATE_FILE_DEFAULT_CPP
+    ),
+    language,
     interpreter,
     pythonCommand: config.get<string>("pythonCommand", "python"),
     pypyCommand: config.get<string>("pypyCommand", "pypy3"),
-    codonCommand: config.get<string>("codonCommand", "codon"),
-    codonBuildArgs,
-    codonOutputName: config.get<string>("codonOutputName", "a.out"),
+    cppCompileCommand: config.get<string>("cppCompileCommand", "cpp_compile"),
+    cppRunCommand: config.get<string>("cppRunCommand", "cpp_run"),
     runCwdMode,
     timeoutMs: typeof timeoutMs === "number" ? timeoutMs : null,
     compare: {
@@ -579,6 +585,7 @@ function postToWebview(message: any) {
 
 function buildRunSettingsPayload(settings: AcCompanionPythonSettings) {
   return {
+    language: settings.language,
     interpreter: settings.interpreter,
     pythonCommand: settings.pythonCommand,
     pypyCommand: settings.pypyCommand,
@@ -659,24 +666,42 @@ function sendNotice(level: "info" | "warn" | "error", message: string) {
   postToWebview({ type: "notice", level, message });
 }
 
-async function switchInterpreter(interpreter: Interpreter) {
+async function switchRuntime(language: Language, interpreter?: Interpreter) {
   try {
-    const config = vscode.workspace.getConfiguration("ac-companion-python");
-    await config.update(
+    const config = vscode.workspace.getConfiguration("ac-companion");
+    const currentInterpreter = config.get<Interpreter>(
       "interpreter",
-      interpreter,
+      "cpython"
+    );
+    const nextInterpreter: Interpreter =
+      language === "python"
+        ? interpreter === "pypy"
+          ? "pypy"
+          : "cpython"
+        : "cpython";
+
+    await config.update(
+      "language",
+      language,
       vscode.ConfigurationTarget.Workspace
     );
-    const labelMap: Record<Interpreter, string> = {
-      cpython: "CPython",
-      pypy: "PyPy",
-      codon: "Codon",
-    };
-    sendNotice("info", `${labelMap[interpreter]} interpreter selected.`);
+    await config.update(
+      "interpreter",
+      nextInterpreter,
+      vscode.ConfigurationTarget.Workspace
+    );
+
+    const label =
+      language === "cpp"
+        ? "C++"
+        : nextInterpreter === "pypy"
+        ? "Python (PyPy)"
+        : "Python (CPython)";
+    sendNotice("info", `${label} selected.`);
     sendStateToWebview();
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to switch interpreter.";
+      error instanceof Error ? error.message : "Failed to switch runtime.";
     sendNotice("error", message);
   }
 }
@@ -697,13 +722,10 @@ function handleWebviewMessage(message: any) {
         void runSingleTestByIndex(message.index);
       }
       break;
-    case "ui/switchInterpreter":
-      if (
-        message.interpreter === "cpython" ||
-        message.interpreter === "pypy" ||
-        message.interpreter === "codon"
-      ) {
-        void switchInterpreter(message.interpreter);
+    case "ui/switchRuntime":
+      if (message.language === "python" || message.language === "cpp") {
+        const interpreter = message.interpreter === "pypy" ? "pypy" : "cpython";
+        void switchRuntime(message.language, interpreter);
       }
       break;
   }

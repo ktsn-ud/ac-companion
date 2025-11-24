@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { runTestCase } from "../core/testRunner";
+import { runPythonTestCase } from "../core/testRunner";
 import {
   getCurrentProblem,
   setCurrentProblem,
@@ -16,12 +16,13 @@ const DEFAULT_SETTINGS: AcCompanionPythonSettings = {
   port: 10043,
   testCaseSaveDirName: "tests",
   templateFilePath: ".config/templates/main.py",
+  templateFilePathCpp: ".config/templates/main.cpp",
+  language: "python",
   interpreter: "cpython",
   pythonCommand: "python",
   pypyCommand: "pypy3",
-  codonCommand: "codon",
-  codonBuildArgs: ["build", "-release"],
-  codonOutputName: "a.out",
+  cppCompileCommand: "cpp_compile",
+  cppRunCommand: "cpp_run",
   runCwdMode: "workspace",
   timeoutMs: null,
   compare: {
@@ -72,7 +73,7 @@ function createWorkspaceFixture(
 }
 
 suite("Runner & State", () => {
-  test("runTestCase succeeds when output matches main.py behavior", async () => {
+  test("runPythonTestCase succeeds when output matches main.py behavior", async () => {
     const { workspaceRoot, problem } = createWorkspaceFixture(
       `
 import sys
@@ -83,7 +84,7 @@ print(data.strip())
       "hello\n"
     );
     try {
-      const result = await runTestCase(
+      const result = await runPythonTestCase(
         problem,
         DEFAULT_SETTINGS,
         workspaceRoot,
@@ -97,7 +98,7 @@ print(data.strip())
     }
   });
 
-  test("runTestCase returns fail when expected output differs", async () => {
+  test("runPythonTestCase returns fail when expected output differs", async () => {
     const { workspaceRoot, problem } = createWorkspaceFixture(
       `
 import sys
@@ -107,7 +108,7 @@ print("mismatch")
       "correct\n"
     );
     try {
-      const result = await runTestCase(
+      const result = await runPythonTestCase(
         problem,
         DEFAULT_SETTINGS,
         workspaceRoot,

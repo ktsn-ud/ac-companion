@@ -1,4 +1,5 @@
-export type Interpreter = "cpython" | "pypy" | "codon";
+export type Language = "python" | "cpp";
+export type Interpreter = "cpython" | "pypy";
 export type RunCwdMode = "workspace" | "task";
 
 export interface CompareSettings {
@@ -10,12 +11,13 @@ export interface AcCompanionPythonSettings {
   port: number;
   testCaseSaveDirName: string;
   templateFilePath: string;
+  templateFilePathCpp: string;
+  language: Language;
   interpreter: Interpreter;
   pythonCommand: string;
   pypyCommand: string;
-  codonCommand: string;
-  codonBuildArgs: string[];
-  codonOutputName: string;
+  cppCompileCommand: string;
+  cppRunCommand: string;
   runCwdMode: RunCwdMode;
   timeoutMs: number | null;
   compare: CompareSettings;

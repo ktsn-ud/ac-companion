@@ -1,14 +1,16 @@
 # Sidebar UI Specification
 
-This document defines the Sidebar UI for AC Companion Python, covering layout, states, and behaviors. No implementation is included.
+This document defines the Sidebar UI for AC Companion, covering layout, states, and behaviors. No implementation is included.
 
 ## Layout
 
 Header
+
 - Title: Problem name (primary) and group (secondary)
 - Controls: Interpreter toggle [CPython | PyPy], Run All button
 
 Body
+
 - Test List (collapsible by default if > 10 tests)
   - Row per test: `#<index>` + status badge + per-test Run button
   - Sections inside each row (expandable):
@@ -17,25 +19,30 @@ Body
     - Console (stderr on failure only, monospace)
 
 Footer
+
 - Runtime info: interpreter, timeout ms, cwd mode
 
 ## States
 
-1) Idle (no problem loaded)
+1. Idle (no problem loaded)
+
 - Empty state message: "No tests yet. Send from Competitive Companion."
 - Disabled controls except interpreter toggle
 
-2) Problem loaded (not run)
+2. Problem loaded (not run)
+
 - Render header with name/group
 - Show test list with Expected sections collapsed
 - Enable Run All and per-test Run
 
-3) Running
+3. Running
+
 - Global spinner near Run All when running all
 - Per-test spinner on running row when running one
 - Disable conflicting actions (prevent duplicate runs)
 
-4) Results (post-run)
+4. Results (post-run)
+
 - Status badge values: Pass (green), Fail (red), Timeout (orange), RE (purple)
 - Actual visible by default for failed tests; collapsed for passed tests
 - Console visible only for failed tests; suppress known PyPy warning lines
@@ -63,7 +70,7 @@ Footer
 ## Wireframe (Text)
 
 ```
-[AC Companion Python]            [CPython ▾] [Run All]
+[AC Companion]            [CPython ▾] [Run All]
 Problem: <name>
 Group:   <group>
 
@@ -77,4 +84,3 @@ Tests (N)
 
 Runtime: interp=CPython  timeout=1800ms  cwd=workspace
 ```
-

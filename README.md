@@ -1,14 +1,14 @@
-# AC Companion Python
+# AC Companion
 
-AC Companion Python は、AtCoder の問題ページから取得したサンプルテストケースを VS Code ワークスペース内に自動保存し、サイドバーから素早くローカル実行できる拡張機能です。Competitive Companion ブラウザ拡張が解析した問題情報を受け取り、コンテスト ID／タスク ID ごとに整理して配置します。
+AC Companion は、AtCoder の問題ページから取得したサンプルテストケースを VS Code ワークスペース内に自動保存し、サイドバーから素早くローカル実行できる拡張機能です。Competitive Companion ブラウザ拡張が解析した問題情報を受け取り、コンテスト ID／タスク ID ごとに整理して配置します。
 
 ## Features
 
 - Competitive Companion からの POST をローカルサーバーで受信し自動保存
 - `コンテストID/タスクID/<保存ディレクトリ名>` 構造で `.in/.out` を作成
-- テンプレート `main.py` を自動配置（未存在のときのみ）し、エディタで自動オープン＋`pass` を選択
+- テンプレート `main.py` / `main.cpp` を自動配置（未存在のときのみ）し、エディタで自動オープン＋`pass` を選択
 - サイドバー（ACCP Panel）でテスト一覧を表示し、Run All / 各テストの実行が可能
-- インタプリタを CPython / PyPy / Codon で切替（サイドバーからワンクリック）
+- 実行ランタイムを Python（CPython/PyPy）と C++ で切替（サイドバーからワンクリック）
 - 出力の比較（完全一致、大小文字の判定切替）と結果の表示（AC/WA/TLE/RE）
 - コマンドパレット: Start/Stop/Run All/Run Test を提供
 - 既存のテストがある場合、再インポートでは上書きせずスキップ
@@ -27,10 +27,10 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 ## Quick Start
 
 1. VS Code でワークスペースを開く
-2. コマンドパレットから「AC Companion Python: Start」を実行（起動済みなら不要）
+2. コマンドパレットから「AC Companion: Start」を実行（起動済みなら不要）
 3. ブラウザで AtCoder の問題ページを開き、Competitive Companion の送信ボタンを押す
-4. `/<contestId>/<taskId>/` に `tests/` と `main.py`（未存在時のみ）が作成されます
-5. VS Code 左側の「AC Companion Python」ビュー（ACCP Panel）でテストを実行
+4. `/<contestId>/<taskId>/` に `tests/` と `main.{py,cpp}`（未存在時のみ）が作成されます
+5. VS Code 左側の「AC Companion」ビュー（ACCP Panel）でテストを実行
 
 ## Directory Layout
 
@@ -47,50 +47,52 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
         ...
 ```
 
-既定の `<testsDir>` は `tests`、テンプレートは `.config/templates/main.py` を参照します。テンプレートは自動生成されないため、必要なら事前に用意してください。
+既定の `<testsDir>` は `tests`、テンプレートは `.config/templates/main.py` / `.config/templates/main.cpp` を参照します。テンプレートは自動生成されないため、必要なら事前に用意してください。
 
 ## Commands
 
-- `AC Companion Python: Start` サーバーを起動
-- `AC Companion Python: Stop` サーバーを停止
-- `AC Companion Python: Run All Tests` すべてのテストを実行
-- `AC Companion Python: Run Test` インデックスを指定して 1 件実行
+- `AC Companion: Start` サーバーを起動
+- `AC Companion: Stop` サーバーを停止
+- `AC Companion: Run All Tests` すべてのテストを実行
+- `AC Companion: Run Test` インデックスを指定して 1 件実行
 
 サイドバー（ACCP Panel）からも Run All／各テストの実行、インタプリタ切替が可能です。
 
 ## Settings
 
-- `ac-companion-python.port` (default: `10043`)
+- `ac-companion.port` (default: `10043`)
   - Competitive Companion が POST するポート番号
-- `ac-companion-python.testCaseSaveDirName` (default: `tests`)
+- `ac-companion.testCaseSaveDirName` (default: `tests`)
   - テストケースを保存するディレクトリ名（なければ自動作成）
-- `ac-companion-python.templateFilePath` (default: `.config/templates/main.py`)
+- `ac-companion.templateFilePath` (default: `.config/templates/main.py`)
   - `main.py` が未存在のときにコピーするテンプレートのパス
-- `ac-companion-python.interpreter` (default: `cpython`)
-  - 使用インタプリタ（`cpython` / `pypy` / `codon`）
-- `ac-companion-python.pythonCommand` (default: `python`)
+- `ac-companion.templateFilePathCpp` (default: `.config/templates/main.cpp`)
+  - `main.cpp` が未存在のときにコピーするテンプレートのパス
+- `ac-companion.language` (default: `python`)
+  - 実行言語（`python` / `cpp`）。`cpp` の場合、外部の `cpp_compile` / `cpp_run` を呼び出します。
+- `ac-companion.interpreter` (default: `cpython`)
+  - Python 実行インタプリタ（`cpython` / `pypy`）。`language=cpp` の場合は無視されます。
+- `ac-companion.pythonCommand` (default: `python`)
   - CPython 実行コマンド
-- `ac-companion-python.pypyCommand` (default: `pypy3`)
+- `ac-companion.pypyCommand` (default: `pypy3`)
   - PyPy 実行コマンド
-- `ac-companion-python.codonCommand` (default: `codon`)
-  - Codon ビルドに使用するコマンド
-- `ac-companion-python.codonBuildArgs` (default: `["build", "-release"]`)
-  - Codon ビルド時に `main.py` の直前へ追加する引数（この拡張機能が自動で `-o <codonOutputName> main.py` を付与します）
-- `ac-companion-python.codonOutputName` (default: `a.out`)
-  - Codon ビルドで生成されるバイナリファイル名。Codon ではデフォルトで入力ファイル名（`main` など）が利用されるため、希望する名前にするには `-o` の指定が必要ですが、本拡張が自動で渡します。
-- `ac-companion-python.runCwdMode` (default: `workspace`)
+- `ac-companion.cppCompileCommand` (default: `cpp_compile`)
+  - C++ のコンパイルに使用するコマンド（`<contestId> <taskId>` を引数に呼び出し、`WORKSPACE_DIR` にワークスペースパスを渡します）。未指定時はデフォルト名を使用します。
+- `ac-companion.cppRunCommand` (default: `cpp_run`)
+  - C++ の実行に使用するコマンド（`<contestId> <taskId> <inputFile>` を引数に呼び出します）。未指定時はデフォルト名を使用します。
+- `ac-companion.runCwdMode` (default: `workspace`)
   - 実行時のカレントディレクトリ（`workspace` または `task`）
-- `ac-companion-python.timeoutMs` (default: `null`)
+- `ac-companion.timeoutMs` (default: `null`)
   - 個別ケースのタイムアウト（ms）。未設定時は `timeLimit × 1.2` を自動採用
-- `ac-companion-python.compare.mode` (default: `exact`)
+- `ac-companion.compare.mode` (default: `exact`)
   - 出力比較モード（現状 `exact`）
-- `ac-companion-python.compare.caseSensitive` (default: `true`)
+- `ac-companion.compare.caseSensitive` (default: `true`)
   - 出力比較の大小文字判定
 
 ## Notes
 
 - インタラクティブ問題は未対応です
-- 実行ログは Output パネル「AC Companion Python」にも出力されます
+- 実行ログは Output パネル「AC Companion」にも出力されます
 - ステータスバーに `ACCP: Running` が表示されている間は受信サーバーが起動中です
 
 ## Known Issues
@@ -99,25 +101,16 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 
 ## Release Notes
 
-### 1.1.3
+### 2.0.0
 
-- Codon ビルドコマンドの出力処理を改善。stdout を破棄し、stderr のみを収集して ANSI エスケープコードを除去するように変更
+- C++ 実行フローを追加し、Python（CPython/PyPy）と C++ をワンクリックで切替可能に
+- `language` / `templateFilePathCpp` / `cppCompileCommand` / `cppRunCommand` を設定に追加し、C++ スクリプトのパスやテンプレートをカスタマイズ可能に
+- Codon サポートを削除し、UI/設定を整理
+- `cpp_run` に渡す入力ファイルをタスクディレクトリ基準の相対パスに修正
 
-### 1.1.2
+### 1.1.3 以前
 
-- Webview のテスト結果が途中で PENDING のまま残ることがあった問題を修正し、Run All の集計表示を正しく更新
-
-### 1.1.1
-
-- Codon ビルドが常に `-o <codonOutputName>` を指定するようになり、設定したバイナリ名がデフォルトで反映されるように修正
-
-### 1.1.0
-
-- Codon インタプリタの実行をサポート。`codon build -release -o <output> main.py` で 1 度だけビルドし、生成バイナリでサンプルを実行
-- Webview のインタプリタ切替を `CPython → PyPy → Codon` の 3 段階に拡張し、ビルド時間を除いた実行時間を表示
-- 設定に Codon コマンド／引数／出力ファイル名を追加
-
-### 1.0.1
+- Codon ビルド出力の抑制や Webview の表示改善など
 
 - テスト実行時に前回のテスト結果が残り、AC のはずが WA や古いスタックトレースが表示されることがある問題を修正
 
