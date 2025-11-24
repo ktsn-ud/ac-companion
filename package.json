@@ -3,7 +3,7 @@
   "displayName": "AC Companion Python",
   "description": "",
   "publisher": "ktsn-ud",
-  "version": "1.1.3",
+  "version": "2.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -56,15 +56,28 @@
           "default": ".config/templates/main.py",
           "description": "コードテンプレートファイルのパス"
         },
+        "ac-companion-python.templateFilePathCpp": {
+          "type": "string",
+          "default": ".config/templates/main.cpp",
+          "description": "C++ テンプレートファイルのパス"
+        },
+        "ac-companion-python.language": {
+          "type": "string",
+          "enum": [
+            "python",
+            "cpp"
+          ],
+          "default": "python",
+          "description": "テスト実行で使用する言語"
+        },
         "ac-companion-python.interpreter": {
           "type": "string",
           "enum": [
             "cpython",
-            "pypy",
-            "codon"
+            "pypy"
           ],
           "default": "cpython",
-          "description": "テスト実行で使用するインタプリタ"
+          "description": "Python 実行時のインタプリタ（language=python の場合に適用）"
         },
         "ac-companion-python.pythonCommand": {
           "type": "string",
@@ -76,26 +89,15 @@
           "default": "pypy3",
           "description": "PyPy 実行時のコマンド名またはパス"
         },
-        "ac-companion-python.codonCommand": {
+        "ac-companion-python.cppCompileCommand": {
           "type": "string",
-          "default": "codon",
-          "description": "Codon ビルド実行時のコマンド名またはパス"
+          "default": "cpp_compile",
+          "description": "C++ をコンパイルするコマンド（workspaceFolder 配下で実行される想定）"
         },
-        "ac-companion-python.codonBuildArgs": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [
-            "build",
-            "-release"
-          ],
-          "description": "Codon ビルド時に渡す追加引数"
-        },
-        "ac-companion-python.codonOutputName": {
+        "ac-companion-python.cppRunCommand": {
           "type": "string",
-          "default": "a.out",
-          "description": "Codon ビルドで生成されるバイナリファイル名"
+          "default": "cpp_run",
+          "description": "C++ バイナリを実行するコマンド（問題別ディレクトリで実行される想定）"
         },
         "ac-companion-python.runCwdMode": {
           "type": "string",

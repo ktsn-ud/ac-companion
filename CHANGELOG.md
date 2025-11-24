@@ -2,6 +2,19 @@
 
 All notable changes to the "ac-companion-python" extension are documented here. This file mirrors the Release Notes section in `README.md`.
 
+## [2.0.0]
+
+### Added
+
+- C++ 実行フローを追加し、Python（CPython/PyPy）と C++ をワンクリックで切替可能に
+- 設定に `language` / `templateFilePathCpp` / `cppCompileCommand` / `cppRunCommand` を追加し、C++ スクリプトのパスをカスタマイズ可能に
+
+### Changed
+
+- C++ 実行時は `cpp_compile` / `cpp_run` を呼び出す構成にし、Codon サポートを削除
+- Webview のランタイム表示と切替ロジックを Python / PyPy / C++ の3段階に刷新
+- `cpp_run` への入力ファイル引数をタスクディレクトリ基準の相対パスに修正
+
 ## [1.1.3]
 
 ### Changed

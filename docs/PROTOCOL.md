@@ -12,7 +12,7 @@ Actors:
 High-level flows:
 1) Receive problem → Persist tests → Update UI state
 2) Run tests (single/all) → Stream/provide results → Update UI
-3) Switch interpreter → Update setting → Re-run as requested
+3) Switch runtime → Update setting → Re-run as requested
 
 ## Entities
 
@@ -33,7 +33,8 @@ Problem
 - cases: TestCaseFile[]
 
 RunSettings
-- interpreter: 'cpython' | 'pypy'
+- language: 'python' | 'cpp'
+- interpreter: 'cpython' | 'pypy' (Python only)
 - pythonCommand: string
 - pypyCommand: string
 - runCwdMode: 'workspace' | 'task' (initial impl: 'workspace')
@@ -144,8 +145,9 @@ type: 'ui/runAll'
 {"type":"ui/runAll"}
 ```
 
-type: 'ui/switchInterpreter'
-- interpreter: 'cpython' | 'pypy'
+type: 'ui/switchRuntime'
+- language: 'python' | 'cpp'
+- interpreter: 'cpython' | 'pypy' (ignored when language = 'cpp')
 
 type: 'ui/requestInit'
 - none (webview requests current state on load)

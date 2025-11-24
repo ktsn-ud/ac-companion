@@ -94,11 +94,23 @@ const App = () => {
     if (!settings) {
       return;
     }
-    const order: RunSettings["interpreter"][] = ["cpython", "pypy", "codon"];
-    const currentIndex = order.indexOf(settings.interpreter);
+    const order: Array<Pick<RunSettings, "language" | "interpreter">> = [
+      { language: "python", interpreter: "cpython" },
+      { language: "python", interpreter: "pypy" },
+      { language: "cpp", interpreter: "cpython" },
+    ];
+    const currentIndex = order.findIndex(
+      (item) =>
+        item.language === settings.language &&
+        item.interpreter === settings.interpreter
+    );
     const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % order.length : 0;
     const next = order[nextIndex];
-    vscode.postMessage({ type: "ui/switchInterpreter", interpreter: next });
+    vscode.postMessage({
+      type: "ui/switchRuntime",
+      language: next.language,
+      interpreter: next.interpreter,
+    });
   };
 
   const computedTimeoutMs = useMemo(() => {

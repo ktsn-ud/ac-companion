@@ -8,16 +8,19 @@ import { RunResult, RunStatus } from "../types/runner";
 import { normalizeLineEndings } from "./testCaseUtils";
 
 const PYPY_CACHE_WARNING = "Warning: cannot find your CPU L2 & L3 cache size";
-const DEFAULT_CODON_BUILD_ARGS = ["build", "--release"];
-const DEFAULT_CODON_OUTPUT_NAME = "a.out";
 
 function getSolutionDir(workspaceRoot: string, problem: ProblemRecord) {
   return path.join(workspaceRoot, problem.contestId, problem.taskId);
 }
 
-function ensureSolutionFile(workspaceRoot: string, problem: ProblemRecord) {
+function ensureSolutionFile(
+  workspaceRoot: string,
+  problem: ProblemRecord,
+  language: "python" | "cpp"
+) {
   const solutionDir = getSolutionDir(workspaceRoot, problem);
-  const solutionPath = path.join(solutionDir, "main.py");
+  const filename = language === "cpp" ? "main.cpp" : "main.py";
+  const solutionPath = path.join(solutionDir, filename);
   if (!fs.existsSync(solutionPath)) {
     throw new Error(`Solution file not found at ${solutionPath}`);
   }
@@ -34,15 +37,6 @@ function readTestCaseIO(testCase: TestCaseFile) {
   return { input, expected };
 }
 
-function getCodonBinaryPath(
-  workspaceRoot: string,
-  problem: ProblemRecord,
-  settings: AcCompanionPythonSettings
-) {
-  const outputName = settings.codonOutputName || DEFAULT_CODON_OUTPUT_NAME;
-  return path.join(getSolutionDir(workspaceRoot, problem), outputName);
-}
-
 /**
  * PyPy の L2/L3 キャッシュ警告などを削除し、不要な stderr を抑制する。
  */
@@ -52,11 +46,6 @@ function filterConsoleOutput(value: string): string {
     .filter((line) => !line.includes(PYPY_CACHE_WARNING))
     .join("\n")
     .trim();
-}
-
-// `ansifilter` と同じ目的で、Codon のビルド出力から ANSI エスケープを取り除く。
-function stripAnsi(value: string): string {
-  return value.replace(/\u001B\[[0-?]*[ -\/]*[@-~]/g, "");
 }
 
 /**
@@ -101,19 +90,15 @@ function resolveCwd(
 }
 
 /**
- * 指定した単一ケースの実行と stdout/stderr のキャプチャ、比較結果の判定を行います。
+ * Python の単一ケース実行と stdout/stderr のキャプチャ、比較結果の判定を行います。
  */
-export async function runTestCase(
+export async function runPythonTestCase(
   problem: ProblemRecord,
   settings: AcCompanionPythonSettings,
   workspaceRoot: string,
   testCase: TestCaseFile
 ): Promise<RunResult> {
-  if (settings.interpreter === "codon") {
-    throw new Error("runTestCase() cannot be used with the Codon interpreter.");
-  }
-
-  const { solutionPath } = ensureSolutionFile(workspaceRoot, problem);
+  const { solutionPath } = ensureSolutionFile(workspaceRoot, problem, "python");
 
   const { input, expected } = readTestCaseIO(testCase);
 
@@ -185,92 +170,41 @@ export async function runTestCase(
   });
 }
 
-/**
- * ProblemRecord に含まれる全ケースを順番に実行し、結果を配列で返します。
- */
-export async function runAllTests(
-  problem: ProblemRecord,
-  settings: AcCompanionPythonSettings,
-  workspaceRoot: string
-): Promise<RunResult[]> {
-  const results: RunResult[] = [];
-  if (settings.interpreter === "codon") {
-    const binaryPath = await buildCodonBinary(problem, settings, workspaceRoot);
-    for (const testCase of problem.cases) {
-      const result = await runCodonTestCase(
-        problem,
-        settings,
-        workspaceRoot,
-        testCase,
-        binaryPath
-      );
-      results.push(result);
-    }
-    return results;
-  }
-  for (const testCase of problem.cases) {
-    const result = await runTestCase(
-      problem,
-      settings,
-      workspaceRoot,
-      testCase
-    );
-    results.push(result);
-  }
-  return results;
-}
-
-export async function buildCodonBinary(
+async function compileCppBinary(
   problem: ProblemRecord,
   settings: AcCompanionPythonSettings,
   workspaceRoot: string
 ): Promise<string> {
-  const { solutionDir } = ensureSolutionFile(workspaceRoot, problem);
-  const outputName = settings.codonOutputName || DEFAULT_CODON_OUTPUT_NAME;
-  const binaryPath = path.join(solutionDir, outputName);
-  const buildArgs = Array.isArray(settings.codonBuildArgs)
-    ? settings.codonBuildArgs
-    : DEFAULT_CODON_BUILD_ARGS;
-  const args = [
-    ...(buildArgs.length ? buildArgs : DEFAULT_CODON_BUILD_ARGS),
-    "-o",
-    outputName,
-    "main.py",
-  ];
+  const { solutionDir } = ensureSolutionFile(workspaceRoot, problem, "cpp");
 
+  const args = [problem.contestId, problem.taskId];
   return new Promise<string>((resolve, reject) => {
-    const child = spawn(settings.codonCommand, args, {
-      cwd: solutionDir,
-      env: process.env,
+    const child = spawn(settings.cppCompileCommand, args, {
+      cwd: workspaceRoot,
+      env: {
+        ...process.env,
+        WORKSPACE_DIR: workspaceRoot,
+      },
     });
 
     const stderrChunks: Buffer[] = [];
-    // stdout を無視（/dev/null に捨てるのと同等）
-    child.stdout?.on("data", () => {});
-    // stderr のみを収集（2>&1 で stdout → stderr に向けた出力も含む）
     child.stderr?.on("data", (chunk) => stderrChunks.push(Buffer.from(chunk)));
+    child.stdout?.on("data", () => {});
 
     child.on("error", reject);
     child.on("close", (code) => {
-      // stderr から ANSI エスケープを除去（ansifilter 相当）
-      const stderr = stripAnsi(
-        Buffer.concat(stderrChunks).toString("utf-8").trim()
-      );
+      const stderr = Buffer.concat(stderrChunks).toString("utf-8").trim();
+      const binaryPath = path.join(solutionDir, "a.out");
       if (code !== 0) {
-        const messageParts = ["Codon build failed."];
+        const messageParts = ["C++ compilation failed."];
         if (stderr) {
           messageParts.push(stderr);
         }
         reject(new Error(messageParts.join("\n")));
         return;
       }
-
       if (!fs.existsSync(binaryPath)) {
-        reject(
-          new Error(
-            `Codon build succeeded but output not found at ${binaryPath}`
-          )
-        );
+        reject(new Error(`C++ binary not found at ${binaryPath}`));
         return;
       }
       resolve(binaryPath);
@@ -278,29 +212,38 @@ export async function buildCodonBinary(
   });
 }
 
-export async function runCodonTestCase(
+/**
+ * C++ の単一ケースを実行し、stdout/stderr を収集して比較判定する。
+ * 事前に compileCppBinary を呼び出しておくこと。
+ */
+export async function runCppTestCase(
   problem: ProblemRecord,
   settings: AcCompanionPythonSettings,
   workspaceRoot: string,
   testCase: TestCaseFile,
   binaryPath?: string
 ): Promise<RunResult> {
-  const resolvedBinaryPath =
-    binaryPath ?? getCodonBinaryPath(workspaceRoot, problem, settings);
+  const { solutionDir } = ensureSolutionFile(workspaceRoot, problem, "cpp");
+  const resolvedBinaryPath = binaryPath ?? path.join(solutionDir, "a.out");
   if (!fs.existsSync(resolvedBinaryPath)) {
-    throw new Error(`Codon binary not found at ${resolvedBinaryPath}`);
+    throw new Error(`C++ binary not found at ${resolvedBinaryPath}`);
   }
-
-  const { input, expected } = readTestCaseIO(testCase);
-
-  const cwd = resolveCwd(settings, workspaceRoot, problem);
+  const { expected } = readTestCaseIO(testCase);
   const timeoutMs = computeTimeout(problem, settings);
 
+  const taskDir = path.join(workspaceRoot, problem.contestId, problem.taskId);
+  const relativeInput = path.relative(taskDir, testCase.inputPath);
+  const args = [problem.contestId, problem.taskId, relativeInput];
+  const runCommand = settings.cppRunCommand || "cpp_run";
   const startAt = Date.now();
+
   return new Promise<RunResult>((resolve, reject) => {
-    const child = spawn(resolvedBinaryPath, [], {
-      cwd,
-      env: process.env,
+    const child = spawn(runCommand, args, {
+      cwd: taskDir,
+      env: {
+        ...process.env,
+        WORKSPACE_DIR: workspaceRoot,
+      },
     });
 
     const stdoutChunks: Buffer[] = [];
@@ -313,7 +256,6 @@ export async function runCodonTestCase(
 
     child.stdout?.on("data", (chunk) => stdoutChunks.push(Buffer.from(chunk)));
     child.stderr?.on("data", (chunk) => stderrChunks.push(Buffer.from(chunk)));
-    child.stdin.end(input);
 
     child.on("error", (err) => {
       clearTimeout(timer);
@@ -326,11 +268,11 @@ export async function runCodonTestCase(
       const actual = normalizeLineEndings(
         Buffer.concat(stdoutChunks).toString("utf-8")
       );
-      const consoleOutput = filterConsoleOutput(
-        normalizeLineEndings(Buffer.concat(stderrChunks).toString("utf-8"))
-      );
-      let status: RunStatus;
+      const consoleOutput = normalizeLineEndings(
+        Buffer.concat(stderrChunks).toString("utf-8")
+      ).trim();
 
+      let status: RunStatus;
       if (timedOut) {
         status = "TLE";
       } else if (code !== 0) {
@@ -355,3 +297,42 @@ export async function runCodonTestCase(
     });
   });
 }
+
+/**
+ * ProblemRecord に含まれる全ケースを順番に実行し、結果を配列で返します。
+ * language=cpp の場合はコンパイルを 1 度だけ行う。
+ */
+export async function runAllTests(
+  problem: ProblemRecord,
+  settings: AcCompanionPythonSettings,
+  workspaceRoot: string
+): Promise<RunResult[]> {
+  const results: RunResult[] = [];
+  if (settings.language === "cpp") {
+    const binaryPath = await compileCppBinary(problem, settings, workspaceRoot);
+    for (const testCase of problem.cases) {
+      const result = await runCppTestCase(
+        problem,
+        settings,
+        workspaceRoot,
+        testCase,
+        binaryPath
+      );
+      results.push(result);
+    }
+    return results;
+  }
+
+  for (const testCase of problem.cases) {
+    const result = await runPythonTestCase(
+      problem,
+      settings,
+      workspaceRoot,
+      testCase
+    );
+    results.push(result);
+  }
+  return results;
+}
+
+export { compileCppBinary };
