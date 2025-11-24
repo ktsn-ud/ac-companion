@@ -2,6 +2,12 @@
 
 All notable changes to the "ac-companion-python" extension are documented here. This file mirrors the Release Notes section in `README.md`.
 
+## [1.1.3]
+
+### Changed
+
+- Codon ビルドコマンドの出力処理を改善。stdout を破棄し、stderr のみを収集して ANSI エスケープコードを除去するように変更（`codon build --release -o a.out Main.py 2>&1 > /dev/null | ansifilter 1>&2` 相当）
+
 ## [1.1.2]
 
 ### Fixed
