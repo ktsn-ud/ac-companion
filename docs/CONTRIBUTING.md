@@ -1,6 +1,6 @@
 # Contributing Guide (Docs-First Phase)
 
-This repository is currently in a documentation-only planning phase for the AC Companion Python extension. No implementation changes should be made until explicitly approved.
+This repository is currently in a documentation-only planning phase for the AC Companion extension. No implementation changes should be made until explicitly approved.
 
 ## Workflow
 
@@ -43,7 +43,9 @@ This repository is currently in a documentation-only planning phase for the AC C
  * @param index 実行するテストケースの 1 始まりインデックス
  * @returns 実行結果（ステータス、所要時間、Actual、Console）
  */
-export async function runOne(index: number): Promise<RunResult> { /* ... */ }
+export async function runOne(index: number): Promise<RunResult> {
+  /* ... */
+}
 ```
 
 ## Commit Examples

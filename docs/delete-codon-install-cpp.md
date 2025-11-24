@@ -1,6 +1,6 @@
 # Plan: devcontainer 環境の Codon 削除と C++環境構築
 
-Codon 関連を削除し、C++（GCC 15.2.0）と Python（CPython 3.13 + PyPy 3.11）を導入する devcontainer 環境を構築します。ac-companion-python 拡張機能の C++対応に向けたインターフェーススクリプトも作成します。
+Codon 関連を削除し、C++（GCC 15.2.0）と Python（CPython 3.13 + PyPy 3.11）を導入する devcontainer 環境を構築します。ac-companion 拡張機能の C++対応に向けたインターフェーススクリプトも作成します。
 
 ## Steps
 
@@ -291,17 +291,17 @@ GCC 15.2.0 のビルドには 30-60 分程度かかる可能性があります�
 
 ### 3. ac-companion 拡張機能の C++対応
 
-ac-companion-python 拡張機能の C++対応には以下が必要です（実装は別途）:
+ac-companion 拡張機能の C++対応には以下が必要です（実装は別途）:
 
 1. **設定追加**:
 
-   - `ac-companion-python.cppCompileCommand`: `"${workspaceFolder}/cpp_compile"`
-   - `ac-companion-python.cppRunCommand`: `"${workspaceFolder}/cpp_run"`
-   - `ac-companion-python.language`: `"python"` | `"cpp"` (言語選択)
+   - `ac-companion.cppCompileCommand`: `"${workspaceFolder}/cpp_compile"`
+   - `ac-companion.cppRunCommand`: `"${workspaceFolder}/cpp_run"`
+   - `ac-companion.language`: `"python"` | `"cpp"` (言語選択)
 
 2. **テンプレート対応**:
 
-   - `ac-companion-python.templateFilePath` を言語別に分岐
+   - `ac-companion.templateFilePath` を言語別に分岐
    - Python: `.config/templates/main.py`
    - C++: `.config/templates/main.cpp`
 

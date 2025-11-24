@@ -1,6 +1,6 @@
 # Change Log
 
-All notable changes to the "ac-companion-python" extension are documented here. This file mirrors the Release Notes section in `README.md`.
+All notable changes to the "ac-companion" extension are documented here. This file mirrors the Release Notes section in `README.md`.
 
 ## [2.0.0]
 
@@ -12,7 +12,7 @@ All notable changes to the "ac-companion-python" extension are documented here. 
 ### Changed
 
 - C++ 実行時は `cpp_compile` / `cpp_run` を呼び出す構成にし、Codon サポートを削除
-- Webview のランタイム表示と切替ロジックを Python / PyPy / C++ の3段階に刷新
+- Webview のランタイム表示と切替ロジックを Python / PyPy / C++ の 3 段階に刷新
 - `cpp_run` への入力ファイル引数をタスクディレクトリ基準の相対パスに修正
 
 ## [1.1.3]

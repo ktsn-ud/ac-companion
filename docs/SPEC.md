@@ -1,6 +1,6 @@
-# AC Companion Python 仕様書
+# AC Companion 仕様書
 
-この文書は、AtCoder 等の問題ページから Competitive Companion 経由でテストケースを取得し、VS Code でローカル実行・検証できる拡張機能「AC Companion Python」の仕様書です。実装済み機能を踏まえ、今後の詳細設計・実装に必要な要件を整理します。
+この文書は、AtCoder 等の問題ページから Competitive Companion 経由でテストケースを取得し、VS Code でローカル実行・検証できる拡張機能「AC Companion」の仕様書です。実装済み機能を踏まえ、今後の詳細設計・実装に必要な要件を整理します。
 
 本仕様はユーザー回答を反映済みです。未確定事項は「将来検討・補足」を参照してください。実装計画は `docs/PLAN.md`、メッセージ仕様は `docs/PROTOCOL.md`、設定は `docs/CONFIG.md`、テスト手順は `docs/TESTING.md`、UI は `docs/UI.md`、マージ方針は `docs/MERGE_POLICY.md` を参照してください。貢献フローは `docs/CONTRIBUTING.md` に記載しています。
 
@@ -65,6 +65,7 @@
 ```
 
 本拡張では主に以下を利用します:
+
 - `name`, `group`, `url`, `interactive`, `timeLimit`, `tests[]`（`input`, `output`）
 
 ## ファイル配置
@@ -74,22 +75,22 @@
   - `testsDir` 既定値: `tests`（設定で変更可能）
   - テストケース: `1.in`, `1.out`, `2.in`, `2.out`, ...
 - ソリューション: `/<contestId>/<taskId>/main.py`
-- コンテストID / タスクID 抽出: URL の `.../contests/<contestId>/tasks/<taskId>` から抽出
+- コンテスト ID / タスク ID 抽出: URL の `.../contests/<contestId>/tasks/<taskId>` から抽出
 
 ## 設定項目（確定）
 
-- `ac-companion-python.port`（既存）: 受信ポート。既定 `10043`
-- `ac-companion-python.testCaseSaveDirName`（既存）: テスト保存ディレクトリ。既定 `tests`
-- `ac-companion-python.templateFilePath`（既存）: テンプレートパス。既定 `.config/templates/main.py`
-- `ac-companion-python.interpreter`（新規）: `"cpython" | "pypy"`（既定 `cpython`）
-- `ac-companion-python.pythonCommand`（新規）: CPython の実行コマンド。既定 `python`
-- `ac-companion-python.pypyCommand`（新規）: PyPy の実行コマンド。既定 `pypy3`
-- `ac-companion-python.runCwdMode`（新規）: 実行カレントディレクトリの選択。
+- `ac-companion.port`（既存）: 受信ポート。既定 `10043`
+- `ac-companion.testCaseSaveDirName`（既存）: テスト保存ディレクトリ。既定 `tests`
+- `ac-companion.templateFilePath`（既存）: テンプレートパス。既定 `.config/templates/main.py`
+- `ac-companion.interpreter`（新規）: `"cpython" | "pypy"`（既定 `cpython`）
+- `ac-companion.pythonCommand`（新規）: CPython の実行コマンド。既定 `python`
+- `ac-companion.pypyCommand`（新規）: PyPy の実行コマンド。既定 `pypy3`
+- `ac-companion.runCwdMode`（新規）: 実行カレントディレクトリの選択。
   - 既定は `"workspace"`（ワークスペースルート）。オプションとして `"task"`（`/<contestId>/<taskId>`）も許容可能だが、初期実装では `workspace` 固定でよい。
-- `ac-companion-python.timeoutMs`（新規）: ローカル実行のタイムアウト（ms）。未指定時は `ceil(timeLimit * 1.2)` を適用
-- `ac-companion-python.compare.mode`（新規）: 出力比較モード。
+- `ac-companion.timeoutMs`（新規）: ローカル実行のタイムアウト（ms）。未指定時は `ceil(timeLimit * 1.2)` を適用
+- `ac-companion.compare.mode`（新規）: 出力比較モード。
   - 既定は `"exact"`。必要に応じて `"trim"` / `"tokens"` を将来追加
-- `ac-companion-python.compare.caseSensitive`（新規）: 大文字小文字の区別（既定 `true`）
+- `ac-companion.compare.caseSensitive`（新規）: 大文字小文字の区別（既定 `true`）
 
 ## テスト実行仕様（確定）
 
@@ -127,11 +128,11 @@
 ## コマンド
 
 - 既存
-  - `AC Companion Python: Start` / `Stop`
+  - `AC Companion: Start` / `Stop`
 - 追加（提案）
-  - `AC Companion Python: Run All Tests`
-  - `AC Companion Python: Run Test Under Cursor`（将来）
-  - `AC Companion Python: Switch Interpreter (CPython/PyPy)`
+  - `AC Companion: Run All Tests`
+  - `AC Companion: Run Test Under Cursor`（将来）
+  - `AC Companion: Switch Interpreter (CPython/PyPy)`
 
 ## エラーハンドリング（確定）
 
@@ -161,7 +162,7 @@
 - 作業は必ず新しい作業ブランチを切って行う
 - 意味のある粒度で定期的にコミットし、進捗を可視化する
 - 実装の大きなステップ前後でコミットを分け、レビューしやすくする
-- 並列化などの最適化は直列版の安定化・コミット後に別コミット/PRで対応
+- 並列化などの最適化は直列版の安定化・コミット後に別コミット/PR で対応
 
 ### 実装上の注意
 

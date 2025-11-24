@@ -1,6 +1,6 @@
 # Codon サポート設計メモ (Deprecated)
 
-本ドキュメントは、AC Companion Python に Codon を追加対応する際の仕様と実装方針をまとめたものです。  
+本ドキュメントは、AC Companion に Codon を追加対応する際の仕様と実装方針をまとめたものです。  
 現在のコードベースでは Codon サポートを削除し、代わりに C++ 実行フローを採用しています。参照時はその点に注意してください。
 実装前の設計資料として扱い、コード変更時は本ファイルを更新します。
 
@@ -16,22 +16,25 @@
 
 `docs/CONFIG.md` および `package.json` の `contributes.configuration` と整合する形で、以下を追加する。
 
-- `ac-companion-python.interpreter`
+- `ac-companion.interpreter`
+
   - type: string enum: `["cpython", "pypy", "codon"]`
   - default: `"cpython"`
   - 既存の CPython / PyPy に加え、Codon を選択可能にする。
 
-- `ac-companion-python.codonCommand`
+- `ac-companion.codonCommand`
+
   - type: string
   - default: `"codon"`
   - Description: Codon 実行コマンド（devcontainer 内で `codon` が PATH に通っている前提）。
 
-- `ac-companion-python.codonBuildArgs`（実装する場合）
+- `ac-companion.codonBuildArgs`（実装する場合）
+
   - type: string[]
   - default: `["build", "-release"]`
   - Description: Codon ビルド時に渡す追加引数。既定では `codon build -release -o <output> main.py` 相当を実行する。
 
-- `ac-companion-python.codonOutputName`（実装する場合）
+- `ac-companion.codonOutputName`（実装する場合）
   - type: string
   - default: `"a.out"`
   - Description: Codon ビルドで生成される出力バイナリ名。`contestId/taskId` ディレクトリ直下に作成する。Codon 本体では `main` など入力に由来する名前になるため、常に `-o <codonOutputName>` を付与する。
@@ -54,9 +57,9 @@
 
 - `buildCodonBinary(problem, settings, workspaceRoot): Promise<string>`
   - `solutionPath = path.join(solutionDir, "main.py")`
-  - コマンド:  
-    - ベース: `settings.codonCommand`（既定 `"codon"`）  
-    - 引数: `settings.codonBuildArgs ?? ["build", "-release"]`  
+  - コマンド:
+    - ベース: `settings.codonCommand`（既定 `"codon"`）
+    - 引数: `settings.codonBuildArgs ?? ["build", "-release"]`
     - 最終的に `codon build -release -o <codonOutputName> main.py` を `cwd = solutionDir` で実行するイメージ。
   - 成功時:
     - `binaryPath`（例: `/<workspaceRoot>/<contestId>/<taskId>/a.out`）が存在する前提で、そのパスを返す。
@@ -121,8 +124,8 @@
 
 - Dev Container 内で `codon` が利用可能な状態にする（Dockerfile 等で事前インストール）。
 - 典型的な利用イメージ:
-  - `ac-companion-python.interpreter = "codon"`
-  - `ac-companion-python.codonCommand = "codon"`
+  - `ac-companion.interpreter = "codon"`
+  - `ac-companion.codonCommand = "codon"`
   - 問題取得後、`Run All Tests` を実行すると:
     1. `codon build -release -o <output> main.py` が `contestId/taskId` ディレクトリで 1 回だけ実行される。
     2. 生成された `a.out` で各 `.in` を実行し、`durationMs` は実行のみを計測。

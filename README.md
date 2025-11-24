@@ -1,6 +1,6 @@
-# AC Companion Python
+# AC Companion
 
-AC Companion Python は、AtCoder の問題ページから取得したサンプルテストケースを VS Code ワークスペース内に自動保存し、サイドバーから素早くローカル実行できる拡張機能です。Competitive Companion ブラウザ拡張が解析した問題情報を受け取り、コンテスト ID／タスク ID ごとに整理して配置します。
+AC Companion は、AtCoder の問題ページから取得したサンプルテストケースを VS Code ワークスペース内に自動保存し、サイドバーから素早くローカル実行できる拡張機能です。Competitive Companion ブラウザ拡張が解析した問題情報を受け取り、コンテスト ID／タスク ID ごとに整理して配置します。
 
 ## Features
 
@@ -27,10 +27,10 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 ## Quick Start
 
 1. VS Code でワークスペースを開く
-2. コマンドパレットから「AC Companion Python: Start」を実行（起動済みなら不要）
+2. コマンドパレットから「AC Companion: Start」を実行（起動済みなら不要）
 3. ブラウザで AtCoder の問題ページを開き、Competitive Companion の送信ボタンを押す
 4. `/<contestId>/<taskId>/` に `tests/` と `main.{py,cpp}`（未存在時のみ）が作成されます
-5. VS Code 左側の「AC Companion Python」ビュー（ACCP Panel）でテストを実行
+5. VS Code 左側の「AC Companion」ビュー（ACCP Panel）でテストを実行
 
 ## Directory Layout
 
@@ -51,48 +51,48 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 
 ## Commands
 
-- `AC Companion Python: Start` サーバーを起動
-- `AC Companion Python: Stop` サーバーを停止
-- `AC Companion Python: Run All Tests` すべてのテストを実行
-- `AC Companion Python: Run Test` インデックスを指定して 1 件実行
+- `AC Companion: Start` サーバーを起動
+- `AC Companion: Stop` サーバーを停止
+- `AC Companion: Run All Tests` すべてのテストを実行
+- `AC Companion: Run Test` インデックスを指定して 1 件実行
 
 サイドバー（ACCP Panel）からも Run All／各テストの実行、インタプリタ切替が可能です。
 
 ## Settings
 
-- `ac-companion-python.port` (default: `10043`)
+- `ac-companion.port` (default: `10043`)
   - Competitive Companion が POST するポート番号
-- `ac-companion-python.testCaseSaveDirName` (default: `tests`)
+- `ac-companion.testCaseSaveDirName` (default: `tests`)
   - テストケースを保存するディレクトリ名（なければ自動作成）
-- `ac-companion-python.templateFilePath` (default: `.config/templates/main.py`)
+- `ac-companion.templateFilePath` (default: `.config/templates/main.py`)
   - `main.py` が未存在のときにコピーするテンプレートのパス
-- `ac-companion-python.templateFilePathCpp` (default: `.config/templates/main.cpp`)
+- `ac-companion.templateFilePathCpp` (default: `.config/templates/main.cpp`)
   - `main.cpp` が未存在のときにコピーするテンプレートのパス
-- `ac-companion-python.language` (default: `python`)
+- `ac-companion.language` (default: `python`)
   - 実行言語（`python` / `cpp`）。`cpp` の場合、外部の `cpp_compile` / `cpp_run` を呼び出します。
-- `ac-companion-python.interpreter` (default: `cpython`)
+- `ac-companion.interpreter` (default: `cpython`)
   - Python 実行インタプリタ（`cpython` / `pypy`）。`language=cpp` の場合は無視されます。
-- `ac-companion-python.pythonCommand` (default: `python`)
+- `ac-companion.pythonCommand` (default: `python`)
   - CPython 実行コマンド
-- `ac-companion-python.pypyCommand` (default: `pypy3`)
+- `ac-companion.pypyCommand` (default: `pypy3`)
   - PyPy 実行コマンド
-- `ac-companion-python.cppCompileCommand` (default: `cpp_compile`)
+- `ac-companion.cppCompileCommand` (default: `cpp_compile`)
   - C++ のコンパイルに使用するコマンド（`<contestId> <taskId>` を引数に呼び出し、`WORKSPACE_DIR` にワークスペースパスを渡します）。未指定時はデフォルト名を使用します。
-- `ac-companion-python.cppRunCommand` (default: `cpp_run`)
+- `ac-companion.cppRunCommand` (default: `cpp_run`)
   - C++ の実行に使用するコマンド（`<contestId> <taskId> <inputFile>` を引数に呼び出します）。未指定時はデフォルト名を使用します。
-- `ac-companion-python.runCwdMode` (default: `workspace`)
+- `ac-companion.runCwdMode` (default: `workspace`)
   - 実行時のカレントディレクトリ（`workspace` または `task`）
-- `ac-companion-python.timeoutMs` (default: `null`)
+- `ac-companion.timeoutMs` (default: `null`)
   - 個別ケースのタイムアウト（ms）。未設定時は `timeLimit × 1.2` を自動採用
-- `ac-companion-python.compare.mode` (default: `exact`)
+- `ac-companion.compare.mode` (default: `exact`)
   - 出力比較モード（現状 `exact`）
-- `ac-companion-python.compare.caseSensitive` (default: `true`)
+- `ac-companion.compare.caseSensitive` (default: `true`)
   - 出力比較の大小文字判定
 
 ## Notes
 
 - インタラクティブ問題は未対応です
-- 実行ログは Output パネル「AC Companion Python」にも出力されます
+- 実行ログは Output パネル「AC Companion」にも出力されます
 - ステータスバーに `ACCP: Running` が表示されている間は受信サーバーが起動中です
 
 ## Known Issues

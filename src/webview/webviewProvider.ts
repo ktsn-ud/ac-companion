@@ -20,7 +20,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>AC Companion Python</title>
+        <title>AC Companion</title>
         <link
           rel="stylesheet"
           href="${webviewView.webview.asWebviewUri(

@@ -1,4 +1,4 @@
-# AC Companion Python Implementation Plan
+# AC Companion Implementation Plan
 
 This plan translates the agreed specification into actionable milestones. No implementation is performed in this commit; it only documents the approach, branch strategy, commit plan, and acceptance criteria.
 
@@ -13,23 +13,26 @@ This plan translates the agreed specification into actionable milestones. No imp
 ## Milestones
 
 ### M0 — Baseline
+
 - Create branch `feat/runner-and-sidebar`
 - Verify compile and extension activation on devcontainer Ubuntu
 
 ### M1 — Settings & Types
+
 - Add new settings (without behavior yet):
-  - `ac-companion-python.interpreter` (default: `cpython`)
-  - `ac-companion-python.pythonCommand` (default: `python`)
-  - `ac-companion-python.pypyCommand` (default: `pypy3`)
-  - `ac-companion-python.runCwdMode` (default: `workspace`)
-  - `ac-companion-python.timeoutMs` (optional)
-  - `ac-companion-python.compare.mode` (default: `exact`)
-  - `ac-companion-python.compare.caseSensitive` (default: `true`)
+  - `ac-companion.interpreter` (default: `cpython`)
+  - `ac-companion.pythonCommand` (default: `python`)
+  - `ac-companion.pypyCommand` (default: `pypy3`)
+  - `ac-companion.runCwdMode` (default: `workspace`)
+  - `ac-companion.timeoutMs` (optional)
+  - `ac-companion.compare.mode` (default: `exact`)
+  - `ac-companion.compare.caseSensitive` (default: `true`)
 - Define TS types for settings and runner results
 - Update README/SPEC with the settings list and defaults
- - Deliverables: CONFIG.md finalized, package.json contributes snippet ready (no code changes)
+- Deliverables: CONFIG.md finalized, package.json contributes snippet ready (no code changes)
 
 ### M2 — Test Case Persistence (Merge Policy)
+
 - Implement merge on receive:
   - Read existing `n.in/out` files
   - Determine next index `n+1, ...` for new tests
@@ -39,6 +42,7 @@ This plan translates the agreed specification into actionable milestones. No imp
 - Deliverables: documented algorithm and edge cases in SPEC/PROTOCOL; `docs/MERGE_POLICY.md` added (no implementation)
 
 ### M3 — Runner Service (Backend)
+
 - Implement a Node/TS runner that:
   - Resolves interpreter command based on settings (`cpython` → `python`, `pypy` → `pypy3`)
   - Launches child process with stdin from `.in` content
@@ -49,18 +53,20 @@ This plan translates the agreed specification into actionable milestones. No imp
   - Filters known PyPy noise in Console: CPU cache warning lines
   - Sets working directory per `runCwdMode` (initially `workspace` only)
 - Define return envelope: status (`pass|fail|timeout|re`), duration, actual, console, diff summary
- - Deliverables: PROTOCOL.md message shapes, stderr filter regex, comparison rules locked
+- Deliverables: PROTOCOL.md message shapes, stderr filter regex, comparison rules locked
 
 ### M4 — Commands & Contribution Points
+
 - Add commands:
-  - `ac-companion-python.runAll`
-  - `ac-companion-python.runOne` (accepts test index)
-  - `ac-companion-python.switchInterpreter`
+  - `ac-companion.runAll`
+  - `ac-companion.runOne` (accepts test index)
+  - `ac-companion.switchInterpreter`
 - Wire commands to runner service and webview messaging
 - Update `package.json` contributes section and command titles
- - Deliverables: command IDs/names documented; keybindings out of scope for v1
+- Deliverables: command IDs/names documented; keybindings out of scope for v1
 
 ### M5 — Sidebar UI (Webview)
+
 - Render header: `name`, `group`, interpreter toggle (CPython/PyPy), Run All button
 - Render test list: index, Expected (collapsible), Actual after run, status badge
 - Per-test Run button; in-flight indicator; cancel if feasible (stretch)
@@ -68,26 +74,30 @@ This plan translates the agreed specification into actionable milestones. No imp
 - Deliverables: UI states and message handling flows documented (wireframe-level) in `docs/UI.md`, no assets added
 
 ### M6 — Messaging & State
+
 - Implement state store in extension (in-memory only)
 - Webview ↔ Extension message protocol:
   - `loadProblem`, `runAll`, `runOne`, `switchInterpreter`, `results`
 - Update view on new test reception and run completion
- - Deliverables: PROTOCOL.md complete; in-memory state model diagram (logical)
+- Deliverables: PROTOCOL.md complete; in-memory state model diagram (logical)
 
 ### M7 — Manual Verification (Devcontainer Ubuntu)
+
 - Seed a sample problem directory with tests
 - Verify both interpreters run
 - Validate timeout behavior and exact comparison
 - Validate merge policy on re-import
- - Deliverables: TESTING.md checklist (added)
+- Deliverables: TESTING.md checklist (added)
 
 ### M8 — Parallelization (Follow-up)
+
 - Introduce concurrency setting and a simple task queue
 - Ensure UI progress remains responsive
 - Keep per-case outputs isolated
- - Deliverables: design note for worker pool and concurrency cap
+- Deliverables: design note for worker pool and concurrency cap
 
 ### M9 — Polish & Docs
+
 - Update README and SPEC to reflect implemented behavior
 - Add troubleshooting (interpreter not found, permission issues)
 - Finalize command palette entries and icons (optional)

@@ -1,13 +1,13 @@
 {
-  "name": "ac-companion-python",
-  "displayName": "AC Companion Python",
+  "name": "ac-companion",
+  "displayName": "AC Companion",
   "description": "",
   "publisher": "ktsn-ud",
   "version": "2.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ktsn-ud/ac-companion-python.git"
+    "url": "https://github.com/ktsn-ud/ac-companion.git"
   },
   "engines": {
     "vscode": "^1.105.0"
@@ -22,46 +22,46 @@
   "contributes": {
     "commands": [
       {
-        "command": "ac-companion-python.start",
-        "title": "AC Companion Python: Start"
+        "command": "ac-companion.start",
+        "title": "AC Companion: Start"
       },
       {
-        "command": "ac-companion-python.stop",
-        "title": "AC Companion Python: Stop"
+        "command": "ac-companion.stop",
+        "title": "AC Companion: Stop"
       },
       {
-        "command": "ac-companion-python.runAll",
-        "title": "AC Companion Python: Run All Tests"
+        "command": "ac-companion.runAll",
+        "title": "AC Companion: Run All Tests"
       },
       {
-        "command": "ac-companion-python.runOne",
-        "title": "AC Companion Python: Run Test"
+        "command": "ac-companion.runOne",
+        "title": "AC Companion: Run Test"
       }
     ],
     "configuration": {
-      "title": "AC Companion Python",
+      "title": "AC Companion",
       "properties": {
-        "ac-companion-python.port": {
+        "ac-companion.port": {
           "type": "number",
           "default": 10043,
           "description": "Competitive Companion が post するポート番号"
         },
-        "ac-companion-python.testCaseSaveDirName": {
+        "ac-companion.testCaseSaveDirName": {
           "type": "string",
           "default": "tests",
           "description": "テストケースを保存するディレクトリ名"
         },
-        "ac-companion-python.templateFilePath": {
+        "ac-companion.templateFilePath": {
           "type": "string",
           "default": ".config/templates/main.py",
           "description": "コードテンプレートファイルのパス"
         },
-        "ac-companion-python.templateFilePathCpp": {
+        "ac-companion.templateFilePathCpp": {
           "type": "string",
           "default": ".config/templates/main.cpp",
           "description": "C++ テンプレートファイルのパス"
         },
-        "ac-companion-python.language": {
+        "ac-companion.language": {
           "type": "string",
           "enum": [
             "python",
@@ -70,7 +70,7 @@
           "default": "python",
           "description": "テスト実行で使用する言語"
         },
-        "ac-companion-python.interpreter": {
+        "ac-companion.interpreter": {
           "type": "string",
           "enum": [
             "cpython",
@@ -79,27 +79,27 @@
           "default": "cpython",
           "description": "Python 実行時のインタプリタ（language=python の場合に適用）"
         },
-        "ac-companion-python.pythonCommand": {
+        "ac-companion.pythonCommand": {
           "type": "string",
           "default": "python",
           "description": "CPython 実行時のコマンド名またはパス"
         },
-        "ac-companion-python.pypyCommand": {
+        "ac-companion.pypyCommand": {
           "type": "string",
           "default": "pypy3",
           "description": "PyPy 実行時のコマンド名またはパス"
         },
-        "ac-companion-python.cppCompileCommand": {
+        "ac-companion.cppCompileCommand": {
           "type": "string",
           "default": "cpp_compile",
           "description": "C++ をコンパイルするコマンド（workspaceFolder 配下で実行される想定）"
         },
-        "ac-companion-python.cppRunCommand": {
+        "ac-companion.cppRunCommand": {
           "type": "string",
           "default": "cpp_run",
           "description": "C++ バイナリを実行するコマンド（問題別ディレクトリで実行される想定）"
         },
-        "ac-companion-python.runCwdMode": {
+        "ac-companion.runCwdMode": {
           "type": "string",
           "enum": [
             "workspace",
@@ -108,7 +108,7 @@
           "default": "workspace",
           "description": "テスト実行時のカレントディレクトリ"
         },
-        "ac-companion-python.timeoutMs": {
+        "ac-companion.timeoutMs": {
           "type": [
             "number",
             "null"
@@ -116,7 +116,7 @@
           "default": null,
           "description": "個別テストケースのタイムアウト（ミリ秒）"
         },
-        "ac-companion-python.compare.mode": {
+        "ac-companion.compare.mode": {
           "type": "string",
           "enum": [
             "exact"
@@ -124,7 +124,7 @@
           "default": "exact",
           "description": "テスト出力の比較モード"
         },
-        "ac-companion-python.compare.caseSensitive": {
+        "ac-companion.compare.caseSensitive": {
           "type": "boolean",
           "default": true,
           "description": "比較時に大文字小文字を区別するか"
@@ -134,16 +134,16 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "ac-companion-python",
-          "title": "AC Companion Python",
+          "id": "ac-companion",
+          "title": "AC Companion",
           "icon": "media/icon.svg"
         }
       ]
     },
     "views": {
-      "ac-companion-python": [
+      "ac-companion": [
         {
-          "id": "ac-companion-python.view",
+          "id": "ac-companion.view",
           "name": "ACCP Panel",
           "icon": "media/icon.svg",
           "type": "webview"

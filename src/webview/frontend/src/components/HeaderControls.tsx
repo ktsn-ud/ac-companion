@@ -52,7 +52,7 @@ export const HeaderControls: React.FC<HeaderControlsProps> = ({
 
   return (
     <header>
-      <h1>AC Companion Python</h1>
+      <h1>AC Companion</h1>
       <div className="text-muted-foreground my-2">
         {settings
           ? `Runtime: ${currentLabel} | Timeout: ${timeoutLabel}`
