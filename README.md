@@ -99,6 +99,10 @@ AC Companion Python は、AtCoder の問題ページから取得したサンプ�
 
 ## Release Notes
 
+### 1.1.3
+
+- Codon ビルドコマンドの出力処理を改善。stdout を破棄し、stderr のみを収集して ANSI エスケープコードを除去するように変更
+
 ### 1.1.2
 
 - Webview のテスト結果が途中で PENDING のまま残ることがあった問題を修正し、Run All の集計表示を正しく更新

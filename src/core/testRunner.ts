@@ -8,17 +8,14 @@ import { RunResult, RunStatus } from "../types/runner";
 import { normalizeLineEndings } from "./testCaseUtils";
 
 const PYPY_CACHE_WARNING = "Warning: cannot find your CPU L2 & L3 cache size";
-const DEFAULT_CODON_BUILD_ARGS = ["build", "-release"];
+const DEFAULT_CODON_BUILD_ARGS = ["build", "--release"];
 const DEFAULT_CODON_OUTPUT_NAME = "a.out";
 
 function getSolutionDir(workspaceRoot: string, problem: ProblemRecord) {
   return path.join(workspaceRoot, problem.contestId, problem.taskId);
 }
 
-function ensureSolutionFile(
-  workspaceRoot: string,
-  problem: ProblemRecord
-) {
+function ensureSolutionFile(workspaceRoot: string, problem: ProblemRecord) {
   const solutionDir = getSolutionDir(workspaceRoot, problem);
   const solutionPath = path.join(solutionDir, "main.py");
   if (!fs.existsSync(solutionPath)) {
@@ -55,6 +52,11 @@ function filterConsoleOutput(value: string): string {
     .filter((line) => !line.includes(PYPY_CACHE_WARNING))
     .join("\n")
     .trim();
+}
+
+// `ansifilter` と同じ目的で、Codon のビルド出力から ANSI エスケープを取り除く。
+function stripAnsi(value: string): string {
+  return value.replace(/\u001B\[[0-?]*[ -\/]*[@-~]/g, "");
 }
 
 /**
@@ -242,21 +244,22 @@ export async function buildCodonBinary(
       env: process.env,
     });
 
-    const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
-    child.stdout?.on("data", (chunk) => stdoutChunks.push(Buffer.from(chunk)));
+    // stdout を無視（/dev/null に捨てるのと同等）
+    child.stdout?.on("data", () => {});
+    // stderr のみを収集（2>&1 で stdout → stderr に向けた出力も含む）
     child.stderr?.on("data", (chunk) => stderrChunks.push(Buffer.from(chunk)));
 
     child.on("error", reject);
     child.on("close", (code) => {
-      const stdout = Buffer.concat(stdoutChunks).toString("utf-8").trim();
-      const stderr = Buffer.concat(stderrChunks).toString("utf-8").trim();
+      // stderr から ANSI エスケープを除去（ansifilter 相当）
+      const stderr = stripAnsi(
+        Buffer.concat(stderrChunks).toString("utf-8").trim()
+      );
       if (code !== 0) {
         const messageParts = ["Codon build failed."];
         if (stderr) {
           messageParts.push(stderr);
-        } else if (stdout) {
-          messageParts.push(stdout);
         }
         reject(new Error(messageParts.join("\n")));
         return;
@@ -264,7 +267,9 @@ export async function buildCodonBinary(
 
       if (!fs.existsSync(binaryPath)) {
         reject(
-          new Error(`Codon build succeeded but output not found at ${binaryPath}`)
+          new Error(
+            `Codon build succeeded but output not found at ${binaryPath}`
+          )
         );
         return;
       }
