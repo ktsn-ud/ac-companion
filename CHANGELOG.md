@@ -2,6 +2,13 @@
 
 All notable changes to the "ac-companion" extension are documented here. This file mirrors the Release Notes section in `README.md`.
 
+## [2.0.1]
+
+### Fixed
+
+- テスト実行開始時に C++ コンパイルエラーなどの古いエラーメッセージをクリアするように修正
+- エラーメッセージ表示エリアをスクロール可能に改善（長いコンパイルエラーに対応）
+
 ## [2.0.0]
 
 ### Added
