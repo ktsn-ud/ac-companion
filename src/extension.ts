@@ -318,6 +318,7 @@ async function handleRunAllTests() {
   isRunning = true;
   const startAt = Date.now();
   sendRunProgress("all", true);
+  sendNotice("info", "");
   outputChannel?.clear();
   outputChannel?.show(true);
   outputChannel?.appendLine(
@@ -457,6 +458,7 @@ async function runSingleTestByIndex(index: number) {
   isRunning = true;
   const startAt = Date.now();
   sendRunProgress("one", true, index);
+  sendNotice("info", "");
   outputChannel?.show(true);
   outputChannel?.appendLine(`[Run #${index}] ${problem.name}`);
 

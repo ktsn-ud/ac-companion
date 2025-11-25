@@ -50,9 +50,10 @@ const App = () => {
                 : "Running tests..."
               : "Idle"
           );
-          // テスト実行開始時に結果をリセット
+          // テスト実行開始時に古いエラーをクリア
           if (runStarted) {
             setResults({});
+            setNotice(null);
           }
           break;
         }
@@ -156,17 +157,21 @@ const App = () => {
       />
 
       {notice && (
-        <div
+        <pre
           style={{
             padding: "8px",
             border: "1px solid #f8bbd0",
             background: "#ffeef5",
             color: "#6f1c2e",
             marginBottom: "12px",
+            maxHeight: "300px",
+            overflowY: "auto",
+            whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
           }}
         >
           {notice}
-        </div>
+        </pre>
       )}
 
       {problem ? (
