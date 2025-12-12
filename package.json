@@ -3,7 +3,7 @@
   "displayName": "AC Companion",
   "description": "",
   "publisher": "ktsn-ud",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -50,6 +50,11 @@
           "type": "string",
           "default": "tests",
           "description": "テストケースを保存するディレクトリ名"
+        },
+        "ac-companion.contestsDirName": {
+          "type": "string",
+          "default": "contests",
+          "description": "コンテストフォルダを保存するベースディレクトリ（相対パス）"
         },
         "ac-companion.templateFilePath": {
           "type": "string",

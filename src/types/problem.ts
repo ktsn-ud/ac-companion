@@ -14,6 +14,7 @@ export interface ProblemRecord {
   timeLimit: number;
   contestId: string;
   taskId: string;
+  contestBaseDir: string;
   testsDir: string;
   cases: TestCaseFile[];
 }

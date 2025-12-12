@@ -2,6 +2,13 @@
 
 All notable changes to the "ac-companion" extension are documented here. This file mirrors the Release Notes section in `README.md`.
 
+## [2.1.0]
+
+### Added
+
+- 新しい設定 `ac-companion.contestsDirName` により、コンテストフォルダを保存するベースディレクトリをカスタマイズ可能に
+- デフォルトでは `contests/` ディレクトリ配下に問題ファイルを保存（例: `contests/abc001/a/...`）
+
 ## [2.0.1]
 
 ### Fixed

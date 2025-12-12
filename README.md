@@ -36,18 +36,19 @@ AC Companion は、AtCoder の問題ページから取得したサンプルテ�
 
 ```
 /<workspace>/
-  <contestId>/
-    <taskId>/
-      main.py
-      <testsDir>/
-        1.in
-        1.out
-        2.in
-        2.out
-        ...
+  contests/                    (configurable base directory)
+    <contestId>/
+      <taskId>/
+        main.py
+        <testsDir>/
+          1.in
+          1.out
+          2.in
+          2.out
+          ...
 ```
 
-既定の `<testsDir>` は `tests`、テンプレートは `.config/templates/main.py` / `.config/templates/main.cpp` を参照します。テンプレートは自動生成されないため、必要なら事前に用意してください。
+デフォルトの `contests` ディレクトリ名は `ac-companion.contestsDirName` で変更可能です。`<testsDir>` のデフォルトは `tests` です。テンプレートは `.config/templates/main.py` / `.config/templates/main.cpp` を参照します。テンプレートは自動生成されないため、必要なら事前に用意してください。
 
 ## Commands
 
@@ -62,6 +63,8 @@ AC Companion は、AtCoder の問題ページから取得したサンプルテ�
 
 - `ac-companion.port` (default: `10043`)
   - Competitive Companion が POST するポート番号
+- `ac-companion.contestsDirName` (default: `contests`)
+  - コンテストフォルダを保存するベースディレクトリ。相対パスで指定でき、ワークスペースルートからの相対パスとして扱われます。例: `contests` や `atcoder` など。
 - `ac-companion.testCaseSaveDirName` (default: `tests`)
   - テストケースを保存するディレクトリ名（なければ自動作成）
 - `ac-companion.templateFilePath` (default: `.config/templates/main.py`)
@@ -100,6 +103,11 @@ AC Companion は、AtCoder の問題ページから取得したサンプルテ�
 現在のところ大きな既知の問題はありません。問題を見つけた場合は issue でご報告ください。
 
 ## Release Notes
+
+### 2.1.0
+
+- 新しい設定 `ac-companion.contestsDirName` により、コンテストフォルダを保存するベースディレクトリをカスタマイズ可能に
+- デフォルトでは `contests/` ディレクトリ配下に問題ファイルを保存
 
 ### 2.0.1
 

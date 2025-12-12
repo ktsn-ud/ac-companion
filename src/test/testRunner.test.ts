@@ -14,6 +14,7 @@ import { ProblemRecord } from "../types/problem";
 
 const DEFAULT_SETTINGS: AcCompanionPythonSettings = {
   port: 10043,
+  contestsDirName: "contests",
   testCaseSaveDirName: "tests",
   templateFilePath: ".config/templates/main.py",
   templateFilePathCpp: ".config/templates/main.cpp",
@@ -58,6 +59,7 @@ function createWorkspaceFixture(
     timeLimit: 2000,
     contestId,
     taskId,
+    contestBaseDir: "contests",
     testsDir: "tests",
     cases: [
       {
@@ -133,6 +135,7 @@ print("mismatch")
       timeLimit: 1000,
       contestId: "c",
       taskId: "t",
+      contestBaseDir: "contests",
       testsDir: "tests",
       cases: [],
     };

@@ -25,6 +25,7 @@ import {
 } from "./core/testRunner";
 import { getCurrentProblem, setCurrentProblem } from "./core/problemState";
 import { ProblemRecord } from "./types/problem";
+import { resolveTaskDir } from "./core/pathUtils";
 
 import { WebviewProvider } from "./webview/webviewProvider";
 import { RunResult, RunScope, RunSummary } from "./types/runner";
@@ -105,6 +106,8 @@ async function startServer() {
             return;
           }
 
+          const workspaceRoot = workspaceFolders.uri.fsPath;
+
           const settings = loadSettings();
 
           const contestId = getContestIdFromUrl(url);
@@ -115,14 +118,17 @@ async function startServer() {
             return;
           }
 
+          const contestBaseDir = settings.contestsDirName;
+          const taskDir = resolveTaskDir(
+            workspaceRoot,
+            contestBaseDir,
+            contestId,
+            taskId
+          );
+
           // 保存ディレクトリの作成
           const dirRelative = settings.testCaseSaveDirName;
-          const saveDir = path.join(
-            workspaceFolders.uri.fsPath,
-            contestId,
-            taskId,
-            dirRelative
-          );
+          const saveDir = path.join(taskDir, dirRelative);
           fs.mkdirSync(saveDir, { recursive: true });
 
           const existingCases = collectTestCases(saveDir);
@@ -167,6 +173,7 @@ async function startServer() {
               typeof data.timeLimit === "number" ? data.timeLimit : 2000,
             contestId,
             taskId,
+            contestBaseDir,
             testsDir: dirRelative,
             cases: collectedCases,
           };
@@ -178,20 +185,13 @@ async function startServer() {
             settings.templateFilePath || TEMPLATE_FILE_DEFAULT;
           const templateRelativePathCpp =
             settings.templateFilePathCpp || TEMPLATE_FILE_DEFAULT_CPP;
-          const templatePath = path.join(
-            workspaceFolders.uri.fsPath,
-            templateRelativePath
-          );
+          const templatePath = path.join(workspaceRoot, templateRelativePath);
           const templatePathCpp = path.join(
-            workspaceFolders.uri.fsPath,
+            workspaceRoot,
             templateRelativePathCpp
           );
 
-          const solutionDir = path.join(
-            workspaceFolders.uri.fsPath,
-            contestId,
-            taskId
-          );
+          const solutionDir = taskDir;
           fs.mkdirSync(solutionDir, { recursive: true });
 
           const pythonSolutionPath = path.join(solutionDir, "main.py");
@@ -557,6 +557,7 @@ function loadSettings(): AcCompanionPythonSettings {
 
   return {
     port: config.get<number>("port", 10043),
+    contestsDirName: config.get<string>("contestsDirName", "contests"),
     testCaseSaveDirName: config.get<string>("testCaseSaveDirName", "tests"),
     templateFilePath: config.get<string>(
       "templateFilePath",

@@ -9,6 +9,7 @@ export interface CompareSettings {
 
 export interface AcCompanionPythonSettings {
   port: number;
+  contestsDirName: string;
   testCaseSaveDirName: string;
   templateFilePath: string;
   templateFilePathCpp: string;

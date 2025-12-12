@@ -6,19 +6,38 @@ import { AcCompanionPythonSettings } from "../types/config";
 import { ProblemRecord, TestCaseFile } from "../types/problem";
 import { RunResult, RunStatus } from "../types/runner";
 import { normalizeLineEndings } from "./testCaseUtils";
+import { resolveTaskDir } from "./pathUtils";
 
 const PYPY_CACHE_WARNING = "Warning: cannot find your CPU L2 & L3 cache size";
 
-function getSolutionDir(workspaceRoot: string, problem: ProblemRecord) {
-  return path.join(workspaceRoot, problem.contestId, problem.taskId);
+function getContestBaseDir(
+  problem: ProblemRecord,
+  settings: AcCompanionPythonSettings
+) {
+  return problem.contestBaseDir ?? settings.contestsDirName;
+}
+
+function getTaskDir(
+  workspaceRoot: string,
+  problem: ProblemRecord,
+  settings: AcCompanionPythonSettings
+) {
+  const contestBaseDir = getContestBaseDir(problem, settings);
+  return resolveTaskDir(
+    workspaceRoot,
+    contestBaseDir,
+    problem.contestId,
+    problem.taskId
+  );
 }
 
 function ensureSolutionFile(
   workspaceRoot: string,
   problem: ProblemRecord,
+  settings: AcCompanionPythonSettings,
   language: "python" | "cpp"
 ) {
-  const solutionDir = getSolutionDir(workspaceRoot, problem);
+  const solutionDir = getTaskDir(workspaceRoot, problem, settings);
   const filename = language === "cpp" ? "main.cpp" : "main.py";
   const solutionPath = path.join(solutionDir, filename);
   if (!fs.existsSync(solutionPath)) {
@@ -84,7 +103,7 @@ function resolveCwd(
   problem: ProblemRecord
 ): string {
   if (settings.runCwdMode === "task") {
-    return path.join(workspaceRoot, problem.contestId, problem.taskId);
+    return getTaskDir(workspaceRoot, problem, settings);
   }
   return workspaceRoot;
 }
@@ -98,7 +117,12 @@ export async function runPythonTestCase(
   workspaceRoot: string,
   testCase: TestCaseFile
 ): Promise<RunResult> {
-  const { solutionPath } = ensureSolutionFile(workspaceRoot, problem, "python");
+  const { solutionPath } = ensureSolutionFile(
+    workspaceRoot,
+    problem,
+    settings,
+    "python"
+  );
 
   const { input, expected } = readTestCaseIO(testCase);
 
@@ -175,7 +199,12 @@ async function compileCppBinary(
   settings: AcCompanionPythonSettings,
   workspaceRoot: string
 ): Promise<string> {
-  const { solutionDir } = ensureSolutionFile(workspaceRoot, problem, "cpp");
+  const { solutionDir } = ensureSolutionFile(
+    workspaceRoot,
+    problem,
+    settings,
+    "cpp"
+  );
 
   const args = [problem.contestId, problem.taskId];
   return new Promise<string>((resolve, reject) => {
@@ -223,7 +252,12 @@ export async function runCppTestCase(
   testCase: TestCaseFile,
   binaryPath?: string
 ): Promise<RunResult> {
-  const { solutionDir } = ensureSolutionFile(workspaceRoot, problem, "cpp");
+  const { solutionDir } = ensureSolutionFile(
+    workspaceRoot,
+    problem,
+    settings,
+    "cpp"
+  );
   const resolvedBinaryPath = binaryPath ?? path.join(solutionDir, "a.out");
   if (!fs.existsSync(resolvedBinaryPath)) {
     throw new Error(`C++ binary not found at ${resolvedBinaryPath}`);
@@ -231,7 +265,7 @@ export async function runCppTestCase(
   const { expected } = readTestCaseIO(testCase);
   const timeoutMs = computeTimeout(problem, settings);
 
-  const taskDir = path.join(workspaceRoot, problem.contestId, problem.taskId);
+  const taskDir = getTaskDir(workspaceRoot, problem, settings);
   const relativeInput = path.relative(taskDir, testCase.inputPath);
   const args = [problem.contestId, problem.taskId, relativeInput];
   const runCommand = settings.cppRunCommand || "cpp_run";
